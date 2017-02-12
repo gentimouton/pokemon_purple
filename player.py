@@ -1,19 +1,31 @@
 import pygame
 
-TILE_W, TILE_H = 16, 16
-
-dir_vectors = {'N': (0, -1), 'S': (0, 1), 'E': (1, 0), 'W': (-1, 0)}
+from level import dir_vectors, TILE_W, TILE_H
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, image, pos=(0, 0)):
+    def __init__(self, frames, pos=(0, 0)):
         pygame.sprite.Sprite.__init__(self)        
         self.x, self.y = pos
-        self.image = image
+        self.dir = 'S'
+        self.standing_frames = {
+            'S': frames[0],
+            'N': frames[1],
+            'W': frames[2],
+            'E': pygame.transform.flip(frames[2], True, False)
+            }
+        self.running_frames = {
+            'S': frames[3],
+            'N': frames[4],
+            'W': frames[5],
+            'E': pygame.transform.flip(frames[5], True, False)
+            }
+        self.image = self.standing_frames[self.dir]
         self.rect = pygame.Rect(pos[0] * TILE_W, pos[1] * TILE_H, TILE_W, TILE_H)
         
     def move(self, direction):
         dx, dy = dir_vectors[direction]
+        self.image = self.standing_frames[direction]
         self.x += dx
         self.y += dy
         self.rect.x = self.x * TILE_W
