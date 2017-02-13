@@ -1,6 +1,6 @@
 import pygame
 
-from controls import process_inputs
+from controls import InputController
 from level import Level, TILE_W, TILE_H
 from player import Player
 
@@ -23,31 +23,36 @@ class Game():
     
     def __init__(self):
         pygame.init()
+        self.fps = 60
+        self.game_over = False
         self.clock = pygame.time.Clock()
-        self.screen = pygame.display.set_mode((12 * TILE_W, 12 * TILE_H))
+        self.controller = InputController(self)
+        self.screen = pygame.display.set_mode((24 * TILE_W, 24 * TILE_H))
         self.level = Level()
         self.bg = self.level.pre_render_map()
-        self.sprites = load_sprites('assets/character_sprites.png', TILE_W, TILE_H)
-        self.player = Player(self.sprites[0])
-        self.allsprites = pygame.sprite.Group((self.player))
-
-        
-    def render(self):
+        self.allsprites = load_sprites('assets/character_sprites.png', TILE_W, TILE_H)
+        self.sprites = pygame.sprite.RenderUpdates()
+        self.player = Player(self.allsprites[0], [self.sprites])
         self.screen.fill((0, 55, 111))
         self.screen.blit(self.bg, (0, 0))
-        # self.player.update()
-        self.allsprites.draw(self.screen)
-        pygame.display.update()
-    
+        pygame.display.flip()
+        
+    def render(self):
+        self.sprites.clear(self.screen, self.bg)
+        self.sprites.update(self.fps)
+        changed_rects = self.sprites.draw(self.screen)
+        pygame.display.update(changed_rects)
+        
     def move(self, direction):
         x, y = self.player.x, self.player.y
-        if(self.level.is_walkable(x, y, direction)):
+        if(self.level.is_walkable(x, y, direction) and not self.player.moving_to):
             self.player.move(direction)
     
     def run(self):
-        while not process_inputs(self):
+        while not self.game_over: 
+            self.controller.process_inputs()
             self.render()
-            self.clock.tick(50)
+            self.clock.tick(self.fps)
 
 
 if __name__ == "__main__":
