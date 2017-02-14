@@ -23,7 +23,7 @@ class Game():
     
     def __init__(self):
         pygame.init()
-        self.fps = 60
+        self.fps = 50
         self.game_over = False
         self.clock = pygame.time.Clock()
         self.controller = InputController(self)
