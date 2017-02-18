@@ -27,10 +27,15 @@ cells = ........................
 
 [.]
 name = floor
-tileset_pos = 1, 0
+tileset_pos = 3, 0
+walkable = true
+
+[g]
+name = grass
+tileset_pos = 2, 1
 walkable = true
 
 [#]
-name = grass
-tileset_pos = 2, 1
+name = tree
+tileset_pos = 6, 1
 walkable = false

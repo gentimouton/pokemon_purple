@@ -1,4 +1,6 @@
 import pygame
+from pygame.color import Color
+from pygame.constants import RLEACCEL
 
 from controls import InputController
 from level import Level, TILE_W, TILE_H
@@ -8,6 +10,7 @@ from player import Player
 def load_sprites(filename, spr_w, spr_h):
     # front, back, left, run front, run back, run left
     chars_img = pygame.image.load(filename).convert()
+    chars_img.set_colorkey(Color(255,0,255), RLEACCEL)
     image_w, image_h = chars_img.get_size()
     sprites = []
     for spr_y in range(0, image_h / spr_h):
@@ -23,7 +26,7 @@ class Game():
     
     def __init__(self):
         pygame.init()
-        self.fps = 50
+        self.fps = 60
         self.game_over = False
         self.clock = pygame.time.Clock()
         self.controller = InputController(self)
