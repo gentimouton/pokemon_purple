@@ -3,18 +3,18 @@ from pygame.color import Color
 from pygame.constants import RLEACCEL
 
 from controls import InputController
-from level import Level
+from level import Level, TILE_W, TILE_H
 from player import Player
 
 
-SCREEN_W, SCREEN_H = 800, 600
+SCREEN_W, SCREEN_H = 512, 512
 
 def load_sprites():
     # front, back, left, run front, run back, run left
     chars_img = pygame.image.load('assets/character_sprites.png').convert()
     chars_img.set_colorkey(Color(255, 0, 255), RLEACCEL)
     chars_img = pygame.transform.scale2x(chars_img)
-    spr_w, spr_h = 16 * 2, 16 * 2
+    spr_w, spr_h = TILE_W, TILE_H
     image_w, image_h = chars_img.get_size()
     sprites = []
     for spr_y in range(0, image_h / spr_h):

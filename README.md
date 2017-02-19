@@ -1,5 +1,7 @@
-# pokemon_purple
-Game engine for clone of pokemon red and blue
+# Constraints
+* Mix between pokemon and monster hunter.
+* Using Pokemon Red/Blue assets.
+* Each map is exactly 16x16 tiles.
 
 
 # See also
