@@ -40,8 +40,9 @@ class Game():
         self.bg = self.level.pre_render_map()
         self.allsprites = load_sprites()
         self.sprites = pygame.sprite.RenderUpdates()
-        self.player = Player(self.allsprites[1], [self.sprites])
-        self.characters = [Character(self.allsprites[0], [self.sprites])]
+        self.player = Player(self.level, self.allsprites[0], [self.sprites])
+        char = Character(self.level, self.allsprites[1], [self.sprites])
+        self.characters = [char]
         self.screen.fill((0, 0, 0))
         self.screen.blit(self.bg, (0, 0))
         pygame.display.flip()
@@ -51,12 +52,15 @@ class Game():
         self.sprites.update(self.fps)
         changed_rects = self.sprites.draw(self.screen)
         pygame.display.update(changed_rects)
-        
-    def move(self, direction):
-        x, y = self.player.x, self.player.y
-        if(self.level.is_walkable(x, y, direction) and not self.player.moving_to):
-            self.player.move(direction)
     
+    def do_action(self, action):
+        action_to_direction = {'up': 'N', 'down': 'S', 'left': 'W', 'right': 'E'}
+        direction = action_to_direction[action]
+        self.player.try_moving_towards(direction)
+    
+    def stop_game(self):
+        self.game_over = True
+        
     def run(self):
         while not self.game_over: 
             self.controller.process_inputs()

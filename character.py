@@ -2,15 +2,16 @@ import pygame
 
 from level import dir_vectors, TILE_W, TILE_H
 
-MOVE_DURATION = 1.0 / 4  # duration of move animation, in seconds
-
 class Character(pygame.sprite.DirtySprite):
-    def __init__(self, frames, containers, pos=(0, 0)):
+    def __init__(self, level, frames, containers, pos=(0, 0)):
         # frames: 6 images (front, back, left, run front, run back, run left)
         # containers: list of sprite groups to join
         pygame.sprite.DirtySprite.__init__(self, *containers)
         self.x, self.y = pos
-        self.moving_to = None  # non null = moving
+        self.level = level
+        self.moving_delta = None  # non null = moving
+        self.moving_from = None
+        self.move_speed = 1.0 # duration of move_player animation, in seconds
         self.dir = 'S'
         self.standing_frames = {
             'S': [frames[0]],
@@ -28,37 +29,44 @@ class Character(pygame.sprite.DirtySprite):
         self.rect = pygame.Rect(pos[0] * TILE_W, pos[1] * TILE_H, TILE_W, TILE_H)
         self.animation_index = 0
     
+    def try_moving_towards(self, direction):
+        x, y = self.x, self.y
+        if(self.level.is_walkable(x, y, direction) and not self.moving_delta):
+            self.move_towards(direction)    
 
-    def move(self, direction):
-        dx, dy = dir_vectors[direction]
+    def move_towards(self, direction):
         self.dir = direction
-        self.moving_to = dx, dy
+        dx, dy = dir_vectors[direction]
+        self.moving_from = self.x, self.y
+        self.moving_delta = dx, dy
+        self.x += dx
+        self.y += dy
         self.animation_index = 0
         
+        
     def update(self, fps):
-        if self.moving_to:
-            dx, dy = self.moving_to
-            if self.animation_index >= int(fps * MOVE_DURATION): # animation is over
-                dx, dy = self.moving_to
-                self.x += dx
-                self.y += dy
+        if self.moving_delta:
+            dx, dy = self.moving_delta
+            if self.animation_index >= int(fps * self.move_speed): # animation is over
                 self.animation_index = 0
-                self.moving_to = None
+                self.moving_delta = None
+                self.moving_from = None
             else: # animation is not over yet
                 if self.animation_index == 0:
                     self.image = self.standing_frames[self.dir][0]
-                elif self.animation_index == int(fps * MOVE_DURATION / 3):
+                elif self.animation_index == int(fps * self.move_speed / 4):
                     # alternate legs/arms when moving N or S
                     if len(self.moving_frames[self.dir]) > 1:
                         self.image = self.moving_frames[self.dir][self.y % 2]
                     else:
                         self.image = self.moving_frames[self.dir][0]
-                elif self.animation_index == int(fps * MOVE_DURATION * 2 / 3):
+                elif self.animation_index == int(fps * self.move_speed * 3 / 4):
                     self.image = self.standing_frames[self.dir][0]
                 self.animation_index += 1
+                
+                old_x, old_y = self.moving_from
+                xx = old_x + dx * float(self.animation_index) / fps / self.move_speed
+                yy = old_y + dy * float(self.animation_index) / fps / self.move_speed
+                self.rect.x = int(xx * TILE_W)
+                self.rect.y = int(yy * TILE_H)
             
-            xx = self.x + dx * float(self.animation_index) / fps / MOVE_DURATION
-            yy = self.y + dy * float(self.animation_index) / fps / MOVE_DURATION
-            self.rect.x = int(xx * TILE_W)
-            self.rect.y = int(yy * TILE_H)
-        

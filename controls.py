@@ -3,6 +3,17 @@ from pygame.constants import QUIT, KEYDOWN, K_ESCAPE, K_UP, K_DOWN, K_LEFT, \
     K_RIGHT, K_w, K_s, K_a, K_d
 
 
+_key_mapping = { # maps pygame key to abstract controller action
+    K_UP: 'up', 
+    K_w: 'up',
+    K_DOWN: 'down', 
+    K_s: 'down',
+    K_LEFT: 'left', 
+    K_a: 'left',
+    K_RIGHT: 'right', 
+    K_d: 'right'    
+    }
+
 class InputController():
     
     def __init__(self, game):
@@ -12,17 +23,10 @@ class InputController():
     def process_inputs(self):
         for event in pygame.event.get():  # inputs
             if event.type == QUIT:
-                self.game.game_over = True
+                self.game.stop_game()
             if event.type == KEYDOWN:
                 key = event.key
                 if key == K_ESCAPE:
-                    self.game.game_over = True
-                elif key in (K_UP, K_w):
-                    self.game.move('N')
-                elif key in (K_DOWN, K_s):
-                    self.game.move('S')
-                elif key in (K_LEFT, K_a):
-                    self.game.move('W')
-                elif key in (K_RIGHT, K_d):
-                    self.game.move('E')
-        
+                    self.game.stop_game()
+                elif key in _key_mapping.keys():
+                    self.game.do_action(_key_mapping[key])        
