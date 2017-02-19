@@ -36,10 +36,8 @@ def load_map(filename):
         
 class Level():
     def __init__(self):
-        cells, cell_types = load_map('assets/level.map')
-        self.cells = cells
-        self.cell_types = cell_types
-        self.w, self.h = len(cells[0]), len(cells)
+        self.cells, self.cell_types = load_map('assets/level.map') 
+        self.w, self.h = len(self.cells[0]), len(self.cells)
         
     def pre_render_map(self):
         tileset = load_tileset()

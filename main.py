@@ -2,6 +2,7 @@ import pygame
 from pygame.color import Color
 from pygame.constants import RLEACCEL
 
+from character import Character
 from controls import InputController
 from level import Level, TILE_W, TILE_H
 from player import Player
@@ -39,7 +40,8 @@ class Game():
         self.bg = self.level.pre_render_map()
         self.allsprites = load_sprites()
         self.sprites = pygame.sprite.RenderUpdates()
-        self.player = Player(self.allsprites[0], [self.sprites])
+        self.player = Player(self.allsprites[1], [self.sprites])
+        self.characters = [Character(self.allsprites[0], [self.sprites])]
         self.screen.fill((0, 0, 0))
         self.screen.blit(self.bg, (0, 0))
         pygame.display.flip()
