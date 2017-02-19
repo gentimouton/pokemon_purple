@@ -2,13 +2,16 @@ import ConfigParser
 
 import pygame
 
-TILE_W, TILE_H = 16, 16
+
+TILE_W, TILE_H = 16 * 2, 16 * 2 # 16x16 tiles and 2x zoom
 
 dir_vectors = {'N': (0, -1), 'S': (0, 1), 'E': (1, 0), 'W': (-1, 0)}
 
 
-def load_tileset(filename, tile_w, tile_h):
-    tileset_img = pygame.image.load(filename).convert()
+def load_tileset():
+    tileset_img = pygame.image.load('assets/tileset.png').convert()
+    tileset_img = pygame.transform.scale2x(tileset_img)
+    tile_w, tile_h = TILE_W, TILE_H
     image_w, image_h = tileset_img.get_size()
     tileset = []
     for tile_x in range(0, image_w / tile_w):
@@ -39,7 +42,7 @@ class Level():
         self.w, self.h = len(cells[0]), len(cells)
         
     def pre_render_map(self):
-        tileset = load_tileset("assets/tileset.png", TILE_W, TILE_H)
+        tileset = load_tileset()
         bg = pygame.Surface((self.w * TILE_W, self.h * TILE_H))
         for map_y, line in enumerate(self.cells):
             for map_x, cell_type in enumerate(line):
@@ -51,7 +54,7 @@ class Level():
     def is_walkable(self, x, y, direction):
         dx, dy = dir_vectors[direction]
         if y + dy < 0 or y + dy >= self.w or x + dx < 0 or x + dx >= self.h:
-            return False # out of bounds
+            return False  # out of bounds
         cell_type = self.cells[y + dy][x + dx]        
         is_walkable = self.cell_types[cell_type]['walkable'] in ('true', 'True')
         return is_walkable
