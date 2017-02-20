@@ -3,7 +3,7 @@ import ConfigParser
 import pygame
 
 
-TILE_W, TILE_H = 16 * 2, 16 * 2 # 16x16 tiles and 2x zoom
+TILE_W, TILE_H = 16 * 2, 16 * 2  # 16x16 tiles and 2x zoom
 
 dir_vectors = {'N': (0, -1), 'S': (0, 1), 'E': (1, 0), 'W': (-1, 0)}
 
@@ -36,8 +36,12 @@ def load_map(filename):
         
 class Level():
     def __init__(self):
-        self.cells, self.cell_types = load_map('assets/level.map') 
-        self.w, self.h = len(self.cells[0]), len(self.cells)
+        self.cells, self.cell_types = load_map('assets/level.map')
+        w, h = len(self.cells[0]), len(self.cells)
+        self.w, self.h = w, h
+        self.characters = {}
+        self.occupancy = [[None for _ in range(h)] for _ in range(w)]  # map pos to char
+
         
     def pre_render_map(self):
         tileset = load_tileset()
@@ -53,6 +57,16 @@ class Level():
         dx, dy = dir_vectors[direction]
         if y + dy < 0 or y + dy >= self.w or x + dx < 0 or x + dx >= self.h:
             return False  # out of bounds
-        cell_type = self.cells[y + dy][x + dx]        
+        cell_type = self.cells[y + dy][x + dx]
         is_walkable = self.cell_types[cell_type]['walkable'] in ('true', 'True')
-        return is_walkable
+        is_free = self.occupancy[x + dx][y + dy] == None
+        return is_walkable and is_free
+
+    def move_character_to(self, char, pos):
+        x, y = pos
+        if char in self.characters.keys():
+            oldx, oldy = self.characters[char]
+            self.occupancy[oldx][oldy] = None
+        self.occupancy[x][y] = char
+        self.characters[char] = pos
+        

@@ -8,10 +8,9 @@ class Character(pygame.sprite.DirtySprite):
         # containers: list of sprite groups to join
         pygame.sprite.DirtySprite.__init__(self, *containers)
         self.x, self.y = pos
-        self.level = level
         self.moving_delta = None  # non null = moving
         self.moving_from = None
-        self.move_speed = 1.0 # duration of move_player animation, in seconds
+        self.move_speed = 1.0  # duration of move_player animation, in seconds
         self.dir = 'S'
         self.standing_frames = {
             'S': [frames[0]],
@@ -28,30 +27,38 @@ class Character(pygame.sprite.DirtySprite):
         self.image = self.standing_frames[self.dir][0]
         self.rect = pygame.Rect(pos[0] * TILE_W, pos[1] * TILE_H, TILE_W, TILE_H)
         self.animation_index = 0
+        self.level = level
+        self.level.move_character_to(self, self.pos)
     
-    def try_moving_towards(self, direction):
-        x, y = self.x, self.y
-        if(self.level.is_walkable(x, y, direction) and not self.moving_delta):
-            self.move_towards(direction)    
+    def _get_pos(self):
+        return self.x, self.y
+    def _set_pos(self, pos):
+        self.x, self.y = pos
+    pos = property(_get_pos, _set_pos)
 
     def move_towards(self, direction):
+        x, y = self.x, self.y
         self.dir = direction
-        dx, dy = dir_vectors[direction]
-        self.moving_from = self.x, self.y
-        self.moving_delta = dx, dy
-        self.x += dx
-        self.y += dy
-        self.animation_index = 0
-        
+        if not self.moving_delta:
+            if self.level.is_walkable(x, y, direction):
+                delta = dir_vectors[direction]
+            else:
+                delta = 0,0
+            dx, dy = delta
+            self.moving_from = self.x, self.y
+            self.moving_delta = dx, dy
+            self.pos = self.x + dx, self.y + dy
+            self.level.move_character_to(self, self.pos)
+            self.animation_index = 0
         
     def update(self, fps):
         if self.moving_delta:
             dx, dy = self.moving_delta
-            if self.animation_index >= int(fps * self.move_speed): # animation is over
+            if self.animation_index >= int(fps * self.move_speed):  # animation is over
                 self.animation_index = 0
                 self.moving_delta = None
                 self.moving_from = None
-            else: # animation is not over yet
+            else:  # animation is not over yet
                 if self.animation_index == 0:
                     self.image = self.standing_frames[self.dir][0]
                 elif self.animation_index == int(fps * self.move_speed / 4):
