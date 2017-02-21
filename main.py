@@ -1,14 +1,18 @@
+import random
+
 import pygame
 from pygame.color import Color
 from pygame.constants import RLEACCEL
 
-from character import Character
+from character import RockNPC, WanderingNPC
 from controls import InputController
 from level import Level, TILE_W, TILE_H
 from player import Player
 
 
 SCREEN_W, SCREEN_H = 512, 512
+
+random.seed(1)
 
 def load_sprites():
     # front, back, left, run front, run back, run left
@@ -41,8 +45,9 @@ class Game():
         self.allsprites = load_sprites()
         self.sprites = pygame.sprite.RenderUpdates()
         self.player = Player(self.level, self.allsprites[0], [self.sprites])
-        char = Character(self.level, self.allsprites[1], [self.sprites])
-        self.characters = [char]
+        girl = WanderingNPC(self.level, self.allsprites[1], [self.sprites])
+        rock = RockNPC(self.level, self.allsprites[3], [self.sprites], (1,2))
+        self.characters = [girl, rock]
         self.screen.fill((0, 0, 0))
         self.screen.blit(self.bg, (0, 0))
         pygame.display.flip()

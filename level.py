@@ -53,14 +53,24 @@ class Level():
                 bg.blit(tile_img, (map_x * TILE_W, map_y * TILE_H))
         return bg
     
-    def is_walkable(self, x, y, direction):
+    def get_acceleration_towards(self, x, y, direction):
+        # return how much faster/slower it is to walk to the destination cell.
+        # < 1 means slower, > 1 is faster than normal.
+        # return 0 if can't be walked to.
         dx, dy = dir_vectors[direction]
         if y + dy < 0 or y + dy >= self.w or x + dx < 0 or x + dx >= self.h:
             return False  # out of bounds
         cell_type = self.cells[y + dy][x + dx]
         is_walkable = self.cell_types[cell_type]['walkable'] in ('true', 'True')
-        is_free = self.occupancy[x + dx][y + dy] == None
-        return is_walkable and is_free
+        target_char = self.occupancy[x + dx][y + dy]
+        is_free = target_char == None
+        if not (is_walkable and is_free):
+            acceleration = 0 
+        elif self.cell_types[cell_type]['name'] == 'grass': # half speed on grass
+            acceleration = 0.5
+        else:
+            acceleration = 1
+        return acceleration
 
     def move_character_to(self, char, pos):
         x, y = pos

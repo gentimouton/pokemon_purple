@@ -1,13 +1,13 @@
 [level]
 tileset = tileset.png
 cells = ....g..gggggggg.
-        ...g......##g##g
-        g.g...g......#..
-        ggg..####g#g...#
+        ..gggggg..##g##g
+        g.....g......#..
+        gg...####g#g...#
         g....g...g##...g
-        ..g###g..g#.g...
+        ...###g..g#.g...
         g...g.gg..g.....
-        g.####....g.g...
+        g..###....g.g...
         ....gg..g####g..
         #..#..gg##gg#g..
         gg....ggggg##g..
