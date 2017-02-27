@@ -53,24 +53,34 @@ class Level():
                 bg.blit(tile_img, (map_x * TILE_W, map_y * TILE_H))
         return bg
     
-    def get_acceleration_towards(self, x, y, direction):
+    
+    def get_destination(self, cur_pos, direction):
         # return how much faster/slower it is to walk to the destination cell.
         # < 1 means slower, > 1 is faster than normal.
         # return 0 if can't be walked to.
         dx, dy = dir_vectors[direction]
-        if y + dy < 0 or y + dy >= self.w or x + dx < 0 or x + dx >= self.h:
-            return False  # out of bounds
-        cell_type = self.cells[y + dy][x + dx]
-        is_walkable = self.cell_types[cell_type]['walkable'] in ('true', 'True')
-        target_char = self.occupancy[x + dx][y + dy]
-        is_free = target_char == None
-        if not (is_walkable and is_free):
-            acceleration = 0 
-        elif self.cell_types[cell_type]['name'] == 'grass': # half speed on grass
-            acceleration = 0.5
+        x, y = cur_pos
+        newx, newy = x + dx, y + dy
+        if newy < 0 or newy >= self.w or newx < 0 or newx >= self.h:
+            walkable = False  # out of bounds
         else:
-            acceleration = 1
-        return acceleration
+            cell_type = self.cells[newy][newx]
+            walkable = self.cell_types[cell_type]['walkable'] in ('true', 'True')
+        
+        if not walkable:
+            speed_adjustment = 0 
+        elif self.cell_types[cell_type]['name'] == 'grass': # half speed on grass
+            speed_adjustment = 0.5
+        else:
+            speed_adjustment = 1
+        return (newx, newy), speed_adjustment, (dx, dy)
+    
+    
+    def get_occupancy(self, pos):
+        x, y = pos
+        target_char = self.occupancy[x][y]
+        return target_char
+    
 
     def move_character_to(self, char, pos):
         x, y = pos

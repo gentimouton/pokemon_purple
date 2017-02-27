@@ -62,6 +62,8 @@ class Game():
         action_to_direction = {'up': 'N', 'down': 'S', 'left': 'W', 'right': 'E'}
         direction = action_to_direction[action]
         self.player.move_towards(direction)
+        
+                          
     
     def stop_game(self):
         self.game_over = True
