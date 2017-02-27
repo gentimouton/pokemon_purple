@@ -53,56 +53,56 @@ class Character(pygame.sprite.DirtySprite):
         self._animation_index = 0
         
     
-    def compute_movement(self):
-        pass
+    def compute_movement(self, direction):
+        # return my future position, and the delta and speed to get there 
+        level = self.level
+        target_pos, delta = level.get_destination(self.pos, direction)
+        
+        if target_pos == None: # I am trying to go out of bounds
+            speed = self.base_move_speed
+            return self.pos, (0, 0), speed, speed
+        
+        speed_penalty = level.get_terrain_penalty(target_pos)
+        if speed_penalty == 1:  # terrain is blocking me
+            speed = self.base_move_speed
+            return self.pos, (0, 0), speed, speed
+        
+        npc = self.level.get_occupancy(target_pos)
+        if npc == None: # regular move, no NPC on the way
+            # delta and target_pos are correct and stay unchanged
+            speed = self.base_move_speed * (1 - speed_penalty)
+            return target_pos, delta, speed, speed
+        
+        # terrain not blocking, but NPC on destination
+        npc_target_pos, npc_delta = level.get_destination(target_pos, direction)
+        if npc_target_pos == None: # NPC will go out of bounds
+            speed = self.base_move_speed
+            return self.pos, (0, 0), speed, speed
+
+        npc_penalty = level.get_terrain_penalty(npc_target_pos)
+        third_npc = level.get_occupancy(npc_target_pos)
+        if npc.pushable and npc_penalty != 1 and not third_npc:  # can push
+            speed = self.base_move_speed * (1 - speed_penalty)
+            npc_speed = npc.base_move_speed * (1 - npc_penalty)
+            speed = min(speed, npc_speed)
+            npc.start_motion(npc_target_pos, npc_delta, speed, speed)
+            level.move_character_to(npc, npc_target_pos)
+            return target_pos, delta, speed, speed
+        
+        # NPC going out of bounds, or not pushable, or blocked by 3rd NPC
+        speed = self.base_move_speed
+        return self.pos, (0, 0), speed, speed
+                
     
     def move_towards(self, direction):
         if self.is_moving:
             return # cant move if animation in progress
         
-        self.dir = direction
-        level = self.level
+        self.dir = direction # face the direction even if staying in place
+        pos, delta, speed1, speed2 = self.compute_movement(direction)
         
-        target_pos, delta = level.get_destination(self.pos, direction)
-        
-        if target_pos == None: # going out of bounds
-            delta = 0, 0
-            target_pos = self.pos
-            speed1 = speed2 = self.base_move_speed
-        else:
-            speed_penalty = level.get_terrain_penalty(target_pos)
-            if speed_penalty == 1:  # terrain is blocking
-                delta = 0, 0
-                target_pos = self.pos
-                speed1 = speed2 = self.base_move_speed
-            else:
-                npc = self.level.get_occupancy(target_pos)
-                if npc == None: # regular move
-                    # delta and target_pos are correct, stay unchanged
-                    speed1 = speed2 = self.base_move_speed * (1 - speed_penalty)
-                else: # terrain not blocking, but NPC on destination
-                    npc_target_pos, npc_delta = level.get_destination(target_pos, direction)
-                    if npc_target_pos == None: # NPC will go out of bounds
-                        delta = 0, 0
-                        target_pos = self.pos
-                        speed1 = speed2 = self.base_move_speed
-                    else:
-                        npc_penalty = level.get_terrain_penalty(npc_target_pos)
-                        third_npc = level.get_occupancy(npc_target_pos)
-                        if npc.pushable and npc_penalty != 1 and not third_npc:  # can push
-                            speed = self.base_move_speed * (1 - speed_penalty)
-                            npc_speed = npc.base_move_speed * (1 - npc_penalty)
-                            speed1 = speed2 = min(speed, npc_speed)
-                            npc.start_motion(npc_target_pos, npc_delta, speed1, speed2)
-                            level.move_character_to(npc, npc_target_pos)
-                        else:
-                            delta = 0, 0
-                            target_pos = self.pos
-                            speed1 = speed2 = self.base_move_speed
-
-    
-        self.start_motion(target_pos, delta, speed1, speed2)
-        level.move_character_to(self, target_pos)
+        self.start_motion(pos, delta, speed1, speed2)
+        self.level.move_character_to(self, pos)
 
     
     def update(self, fps):
