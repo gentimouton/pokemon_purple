@@ -53,28 +53,30 @@ class Level():
                 bg.blit(tile_img, (map_x * TILE_W, map_y * TILE_H))
         return bg
     
+    def get_terrain_penalty(self, pos):
+        # return 1 if can't walk, 0 if full speed, 0.5 if half speed.
+        x, y = pos
+        cell_type = self.cells[y][x]
+        walkable = self.cell_types[cell_type]['walkable'] in ('true', 'True')
+        if not walkable:
+            penalty = 1 
+        elif self.cell_types[cell_type]['name'] == 'grass': 
+            penalty = 0.8  # 20% speed on grass
+        else:
+            penalty = 0
+        return penalty
+    
     
     def get_destination(self, cur_pos, direction):
-        # return how much faster/slower it is to walk to the destination cell.
-        # < 1 means slower, > 1 is faster than normal.
-        # return 0 if can't be walked to.
+        # return new position, delta to get there
         dx, dy = dir_vectors[direction]
         x, y = cur_pos
         newx, newy = x + dx, y + dy
         if newy < 0 or newy >= self.w or newx < 0 or newx >= self.h:
-            walkable = False  # out of bounds
+            return None, None
         else:
-            cell_type = self.cells[newy][newx]
-            walkable = self.cell_types[cell_type]['walkable'] in ('true', 'True')
+            return (newx, newy), (dx, dy)
         
-        if not walkable:
-            speed_adjustment = 0 
-        elif self.cell_types[cell_type]['name'] == 'grass': # half speed on grass
-            speed_adjustment = 0.5
-        else:
-            speed_adjustment = 1
-        return (newx, newy), speed_adjustment, (dx, dy)
-    
     
     def get_occupancy(self, pos):
         x, y = pos
