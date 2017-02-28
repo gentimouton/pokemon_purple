@@ -61,7 +61,7 @@ class Level():
         if not walkable:
             penalty = 1 
         elif self.cell_types[cell_type]['name'] == 'grass': 
-            penalty = 0.8  # 20% speed on grass
+            penalty = 0.5  # 50% speed on grass
         else:
             penalty = 0
         return penalty

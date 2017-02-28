@@ -48,8 +48,8 @@ class Character(pygame.sprite.DirtySprite):
         if self.is_moving:
             return  # cant move if animation in progress
         self.dir = direction  # face the direction even if staying in place
-        pos, delta, speed1, speed2 = self.compute_movement(direction)
-        self.start_motion(pos, delta, speed1, speed2)
+        pos, delta, in_speed, out_speed = self.compute_movement(direction)
+        self.start_motion(pos, delta, in_speed, out_speed)
         self.level.move_character_to(self, pos)
 
 
@@ -70,10 +70,10 @@ class Character(pygame.sprite.DirtySprite):
         npc = self.level.get_occupancy(target_pos)
         if npc == None:  # terrain not blocking and no NPC on the way
             # delta and target_pos are correct and stay unchanged
-            outbound_speed = self.base_move_speed * (1 - destination_speed_penalty)
-            current_speed_penalty = level.get_terrain_penalty(self.pos)
-            inbound_speed = self.base_move_speed * (1 - current_speed_penalty)
-            return target_pos, delta, inbound_speed, outbound_speed
+            out_speed = self.base_move_speed * (1 - destination_speed_penalty)
+            local_speed_penalty = level.get_terrain_penalty(self.pos)
+            in_speed = self.base_move_speed * (1 - local_speed_penalty)
+            return target_pos, delta, in_speed, out_speed
         
         # terrain not blocking, but NPC on destination
         npc_target_pos, npc_delta = level.get_destination(target_pos, direction)
@@ -84,13 +84,17 @@ class Character(pygame.sprite.DirtySprite):
         npc_destination_penalty = level.get_terrain_penalty(npc_target_pos)
         third_npc = level.get_occupancy(npc_target_pos)
         # can push NPC
-        if npc.pushable and npc_destination_penalty != 1 and not third_npc: 
-            speed = self.base_move_speed * (1 - destination_speed_penalty)
-            npc_speed = npc.base_move_speed * (1 - npc_destination_penalty)
-            speed = min(speed, npc_speed)
-            npc.start_motion(npc_target_pos, npc_delta, speed, speed)
+        if npc.pushable and npc_destination_penalty != 1 and not third_npc:
+            my_out_speed = self.base_move_speed * (1 - destination_speed_penalty)
+            local_speed_penalty = level.get_terrain_penalty(self.pos)
+            my_in_speed = self.base_move_speed * (1 - local_speed_penalty)
+            npc_out_speed = npc.base_move_speed * (1 - npc_destination_penalty)
+            npc_in_speed = npc.base_move_speed * (1 - destination_speed_penalty)
+            in_speed = min(my_in_speed, npc_in_speed)
+            out_speed = min(my_out_speed, npc_out_speed)
+            npc.start_motion(npc_target_pos, npc_delta, in_speed, out_speed)
             level.move_character_to(npc, npc_target_pos)
-            return target_pos, delta, speed, speed
+            return target_pos, delta, in_speed, out_speed
         
         # NPC going out of bounds, or not pushable, or blocked by 3rd NPC
         speed = self.base_move_speed
@@ -172,7 +176,8 @@ class RockNPC(Character):
     def __init__(self, level, frames, containers, pos=(0, 0)):
         Character.__init__(self, level, frames, containers, pos)
         self.pushable = True
-        self.base_move_speed = 2  # cells per second
-    
-
-    
+        self.base_move_speed = 1  # cells per second
+        # hack to prevent rocks from alternating sprite when being pushed
+        self.standing_frames['E'] = self.standing_frames['W']
+        self.moving_frames['S'].pop()
+        self.moving_frames['N'].pop()
