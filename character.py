@@ -16,7 +16,7 @@ class Character(pygame.sprite.DirtySprite):
         self._moving_from = None
         self.is_moving = False
         self.base_move_speed = 1.0  # cells per second
-        self._move_speed = self.base_move_speed 
+        self._inbound_speed = self._outbound_speed = self.base_move_speed 
         self.dir = 'S'
         self.standing_frames = {
             'S': [frames[0]],
@@ -44,46 +44,49 @@ class Character(pygame.sprite.DirtySprite):
     pos = property(_get_pos, _set_pos)
             
     
-    def start_motion(self, target_pos, delta, speed1, speed2):
-        self._moving_from = self.pos
-        self.pos = target_pos
-        self._moving_delta = delta
-        self._move_speed = speed1
-        self.is_moving = True
-        self._animation_index = 0
-        
-    
+    def move_towards(self, direction):
+        if self.is_moving:
+            return  # cant move if animation in progress
+        self.dir = direction  # face the direction even if staying in place
+        pos, delta, speed1, speed2 = self.compute_movement(direction)
+        self.start_motion(pos, delta, speed1, speed2)
+        self.level.move_character_to(self, pos)
+
+
     def compute_movement(self, direction):
         # return my future position, and the delta and speed to get there 
         level = self.level
         target_pos, delta = level.get_destination(self.pos, direction)
         
-        if target_pos == None: # I am trying to go out of bounds
+        if target_pos == None:  # I am trying to go out of bounds
             speed = self.base_move_speed
             return self.pos, (0, 0), speed, speed
         
-        speed_penalty = level.get_terrain_penalty(target_pos)
-        if speed_penalty == 1:  # terrain is blocking me
+        destination_speed_penalty = level.get_terrain_penalty(target_pos)
+        if destination_speed_penalty == 1:  # terrain is blocking me
             speed = self.base_move_speed
             return self.pos, (0, 0), speed, speed
         
         npc = self.level.get_occupancy(target_pos)
-        if npc == None: # regular move, no NPC on the way
+        if npc == None:  # terrain not blocking and no NPC on the way
             # delta and target_pos are correct and stay unchanged
-            speed = self.base_move_speed * (1 - speed_penalty)
-            return target_pos, delta, speed, speed
+            outbound_speed = self.base_move_speed * (1 - destination_speed_penalty)
+            current_speed_penalty = level.get_terrain_penalty(self.pos)
+            inbound_speed = self.base_move_speed * (1 - current_speed_penalty)
+            return target_pos, delta, inbound_speed, outbound_speed
         
         # terrain not blocking, but NPC on destination
         npc_target_pos, npc_delta = level.get_destination(target_pos, direction)
-        if npc_target_pos == None: # NPC will go out of bounds
+        if npc_target_pos == None:  # NPC will go out of bounds
             speed = self.base_move_speed
             return self.pos, (0, 0), speed, speed
 
-        npc_penalty = level.get_terrain_penalty(npc_target_pos)
+        npc_destination_penalty = level.get_terrain_penalty(npc_target_pos)
         third_npc = level.get_occupancy(npc_target_pos)
-        if npc.pushable and npc_penalty != 1 and not third_npc:  # can push
-            speed = self.base_move_speed * (1 - speed_penalty)
-            npc_speed = npc.base_move_speed * (1 - npc_penalty)
+        # can push NPC
+        if npc.pushable and npc_destination_penalty != 1 and not third_npc: 
+            speed = self.base_move_speed * (1 - destination_speed_penalty)
+            npc_speed = npc.base_move_speed * (1 - npc_destination_penalty)
             speed = min(speed, npc_speed)
             npc.start_motion(npc_target_pos, npc_delta, speed, speed)
             level.move_character_to(npc, npc_target_pos)
@@ -94,45 +97,60 @@ class Character(pygame.sprite.DirtySprite):
         return self.pos, (0, 0), speed, speed
                 
     
-    def move_towards(self, direction):
-        if self.is_moving:
-            return # cant move if animation in progress
+    def start_motion(self, target_pos, delta, speed1, speed2):
+        self._moving_from = self.pos
+        self.pos = target_pos
+        self._moving_delta = delta
+        self._inbound_speed = speed1
+        self._outbound_speed = speed2
+        self.is_moving = True
+        self._animation_index = 0
         
-        self.dir = direction # face the direction even if staying in place
-        pos, delta, speed1, speed2 = self.compute_movement(direction)
-        
-        self.start_motion(pos, delta, speed1, speed2)
-        self.level.move_character_to(self, pos)
-
     
     def update(self, fps):
         # moving logic
-        if self._moving_delta:
-            dx, dy = self._moving_delta
-            if self._animation_index >= int(fps / self._move_speed):  # animation is over
+        if self.is_moving:
+            animation1_duration = int(fps / self._inbound_speed /2)  # in frames
+            animation2_duration = int(fps / self._outbound_speed /2)  # in frames
+            total_duration = animation1_duration + animation2_duration
+            
+            if self._animation_index >= total_duration: # animation is over 
                 self._animation_index = 0
                 self._moving_delta = None
                 self._moving_from = None
                 self.is_moving = False
-            else:  # animation is not over yet
-                if self._animation_index == 0:
-                    self.image = self.standing_frames[self.dir][0]
-                elif self._animation_index == int(fps / self._move_speed / 4):
-                    # alternate legs/arms when moving N or S
-                    if len(self.moving_frames[self.dir]) > 1:
-                        self.image = self.moving_frames[self.dir][self.y % 2]
-                    else:
-                        self.image = self.moving_frames[self.dir][0]
-                elif self._animation_index == int(fps / self._move_speed * 3 / 4):
-                    self.image = self.standing_frames[self.dir][0]
-                self._animation_index += 1
-                
-                old_x, old_y = self._moving_from
-                xx = old_x + dx * float(self._animation_index) / fps * self._move_speed
-                yy = old_y + dy * float(self._animation_index) / fps * self._move_speed
-                self.rect.x = int(xx * TILE_W)
-                self.rect.y = int(yy * TILE_H)
+                return
             
+            # animation is not over yet 
+            self._animation_index += 1
+            animation_index = self._animation_index
+            # adapt character sprite
+            if animation_index == 1:
+                self.image = self.standing_frames[self.dir][0]
+            elif animation_index == int(total_duration / 4):
+                # alternate legs/arms when moving N or S
+                if len(self.moving_frames[self.dir]) > 1:
+                    self.image = self.moving_frames[self.dir][self.y % 2]
+                else:
+                    self.image = self.moving_frames[self.dir][0]
+            elif animation_index == int(total_duration * 3 / 4):
+                self.image = self.standing_frames[self.dir][0]
+            
+            # move character sprite 
+            old_x, old_y = self._moving_from
+            dx, dy = self._moving_delta
+            if animation_index <= animation1_duration:
+                progress = float(animation_index) / fps * self._inbound_speed
+            else:
+                offset1 = float(animation1_duration) / fps * self._inbound_speed
+                offset2 = float(animation_index - animation1_duration) / fps * self._outbound_speed
+                progress = offset1 + offset2
+                
+            xx = old_x + dx * progress
+            yy = old_y + dy * progress
+            self.rect.x = int(xx * TILE_W)
+            self.rect.y = int(yy * TILE_H)
+        
 
 
 class WanderingNPC(Character):

@@ -3,7 +3,7 @@ tileset = tileset.png
 cells = ....g..gggggggg.
         ..gggggg..##g##g
         g.....g......#..
-        gg...####g#g...#
+        g....####g#g...#
         g....g...g##...g
         ...###g..g#.g...
         g...g.gg..g.....
