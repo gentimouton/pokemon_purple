@@ -43,11 +43,15 @@ class Game():
         self.level = Level()
         self.bg = self.level.pre_render_map()
         self.allsprites = load_sprites()
-        self.sprites = pygame.sprite.RenderUpdates()
+#         self.sprites = pygame.sprite.RenderUpdates()
+        self.sprites = pygame.sprite.LayeredDirty()
         self.player = Player(self.level, self.allsprites[0], [self.sprites])
         girl = WanderingNPC(self.level, self.allsprites[1], [self.sprites])
         rock = RockNPC(self.level, self.allsprites[3], [self.sprites], (1,2))
         self.characters = [girl, rock]
+        for char in self.characters:
+            self.sprites.change_layer(char, 1)
+        self.sprites.change_layer(self.player, 1)
         self.screen.fill((0, 0, 0))
         self.screen.blit(self.bg, (0, 0))
         pygame.display.flip()

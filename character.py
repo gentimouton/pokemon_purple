@@ -1,7 +1,6 @@
 import random
 
 import pygame
-
 from level import dir_vectors, TILE_W, TILE_H
 
 
@@ -35,6 +34,7 @@ class Character(pygame.sprite.DirtySprite):
         self._animation_index = 0
         self.level = level
         self.level.move_character_to(self, self.pos)
+        self.dirty = 1
     
     
     def _get_pos(self):
@@ -114,6 +114,7 @@ class Character(pygame.sprite.DirtySprite):
     def update(self, fps):
         # moving logic
         if self.is_moving:
+            self.dirty = 1
             animation1_duration = int(fps / self._inbound_speed /2)  # in frames
             animation2_duration = int(fps / self._outbound_speed /2)  # in frames
             total_duration = animation1_duration + animation2_duration
