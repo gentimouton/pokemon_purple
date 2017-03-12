@@ -44,18 +44,20 @@ class Character(pygame.sprite.DirtySprite):
             
     
     def try_moving_towards(self, direction):
+        """ Make the character move. 
+        Return whether the move triggered an encounter.
+        """
         if self.is_moving:
             return  # cant move if animation in progress
         self.dir = direction  # face the direction even if staying in place
         outcome, pos, delta, in_speed, out_speed = self.compute_movement(direction)
-        if outcome in ('stay','move'):
+        if outcome in ('stay', 'move'):
             self.start_motion(pos, delta, in_speed, out_speed)
             self.level.move_character_to(self, pos)
-        elif outcome == 'encounter':
-            print 'encounter'
+        return 0
 
     def compute_movement(self, direction):
-        """ return outcome, future pos, and the delta and speed to get there
+        """ Return outcome, future pos, and the delta and speed to get there
         possible outcomes: encounter, stay, move
         """
         level = self.level
@@ -207,3 +209,18 @@ class Player(Character):
     pushable = False
     capturable = False
     base_move_speed = 5 # cells per second
+
+    def try_moving_towards(self, direction):
+        """ Make the character move. 
+        Return whether the move triggered an encounter.
+        """
+        if self.is_moving:
+            return  # cant move if animation in progress
+        self.dir = direction  # face the direction even if staying in place
+        outcome, pos, delta, in_speed, out_speed = self.compute_movement(direction)
+        if outcome in ('stay', 'move'):
+            self.start_motion(pos, delta, in_speed, out_speed)
+            self.level.move_character_to(self, pos)
+            return 0
+        elif outcome == 'encounter':
+            return 1
