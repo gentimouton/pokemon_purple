@@ -82,11 +82,11 @@ class Character(pygame.sprite.DirtySprite):
             return 'move', target_pos, delta, in_speed, out_speed
         
         # terrain not blocking, but NPC on destination
-        if npc.capturable:
+        if npc.encounterable:
             speed = self.base_move_speed
             return 'encounter', self.pos, (0, 0), speed, speed 
         
-        # npc not capturable, can it move?    
+        # npc not encounterable, can it move?    
         npc_target_pos, npc_delta = level.get_destination(target_pos, direction)
         if npc_target_pos == None:  # NPC will go out of bounds
             speed = self.base_move_speed
@@ -126,11 +126,11 @@ class Character(pygame.sprite.DirtySprite):
         # moving logic
         if self.is_moving:
             self.dirty = 1
-            animation1_duration = int(fps / self._inbound_speed /2)  # in frames
-            animation2_duration = int(fps / self._outbound_speed /2)  # in frames
+            animation1_duration = int(fps / self._inbound_speed / 2)  # in frames
+            animation2_duration = int(fps / self._outbound_speed / 2)  # in frames
             total_duration = animation1_duration + animation2_duration
             
-            if self._animation_index >= total_duration: # animation is over 
+            if self._animation_index >= total_duration:  # animation is over 
                 self._animation_index = 0
                 self._moving_delta = None
                 self._moving_from = None
@@ -171,8 +171,8 @@ class Character(pygame.sprite.DirtySprite):
 
 class WanderingNPC(Character):
     pushable = False
-    capturable = False
-    base_move_period = 4 # move every 4 seconds 
+    encounterable = False
+    base_move_period = 4  # move every 4 seconds 
     def __init__(self, level, frames, containers, pos=(0, 0)):
         Character.__init__(self, level, frames, containers, pos)
         self.move_timer = 0
@@ -189,7 +189,7 @@ class WanderingNPC(Character):
 
 class RockNPC(Character):
     pushable = True
-    capturable = False
+    encounterable = False
     base_move_speed = 1  # cells per second
     def __init__(self, level, frames, containers, pos=(0, 0)):
         Character.__init__(self, level, frames, containers, pos)
@@ -200,15 +200,30 @@ class RockNPC(Character):
 
 
 class MonsterNPC(WanderingNPC):
-    capturable = True
+    encounterable = True
     pushable = False
-    base_move_period = 2.5 # move every 2.5 seconds
+    base_move_period = 2.5  # move every 2.5 seconds
     
+    def try_moving_towards(self, direction):
+        """ Make the character move. 
+        Return whether the move triggered an encounter.
+        """
+        if self.is_moving:
+            return  # cant move if animation in progress
+        self.dir = direction  # face the direction even if staying in place
+        outcome, pos, delta, in_speed, out_speed = self.compute_movement(direction)
+        if outcome in ('stay', 'move'):
+            self.start_motion(pos, delta, in_speed, out_speed)
+            self.level.move_character_to(self, pos)
+            return 0
+        elif outcome == 'encounter':
+            return 1
+
 
 class Player(Character):
     pushable = False
-    capturable = False
-    base_move_speed = 5 # cells per second
+    encounterable = False
+    base_move_speed = 5  # cells per second
 
     def try_moving_towards(self, direction):
         """ Make the character move. 

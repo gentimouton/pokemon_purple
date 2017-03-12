@@ -3,7 +3,6 @@ when player walks in grass, display the bottom half of the grass over the sprite
 use layereddirty sprite group
 place grass sprites in top layer?
 
-pokemon NPC
 
 battle with one option: scare away -> battle ends, pokemon runs away in map
 
