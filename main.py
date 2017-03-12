@@ -4,10 +4,9 @@ import pygame
 from pygame.color import Color
 from pygame.constants import RLEACCEL
 
-from character import RockNPC, WanderingNPC
+from character import RockNPC, WanderingNPC, MonsterNPC, Player
 from controls import InputController
 from level import Level, TILE_W, TILE_H
-from player import Player
 
 
 SCREEN_W, SCREEN_H = 512, 512
@@ -43,13 +42,12 @@ class Game():
         self.level = Level()
         self.bg = self.level.pre_render_map()
         self.allsprites = load_sprites()
-#         self.sprites = pygame.sprite.RenderUpdates()
         self.sprites = pygame.sprite.LayeredDirty()
-        self.player = Player(self.level, self.allsprites[0], [self.sprites])
-        girl = WanderingNPC(self.level, self.allsprites[1], [self.sprites])
+        self.player = Player(self.level, self.allsprites[0], [self.sprites], (1,1))
+        girl = WanderingNPC(self.level, self.allsprites[1], [self.sprites], (0, 0))
         rock = RockNPC(self.level, self.allsprites[3], [self.sprites], (1,2))
-        self.characters = [girl, rock]
-        for char in self.characters:
+        monster = MonsterNPC(self.level, self.allsprites[4], [self.sprites], (3,3))
+        for char in [self.player, girl, rock, monster]:
             self.sprites.change_layer(char, 1)
         self.sprites.change_layer(self.player, 1)
         self.screen.fill((0, 0, 0))
@@ -65,10 +63,9 @@ class Game():
     def do_action(self, action):
         action_to_direction = {'up': 'N', 'down': 'S', 'left': 'W', 'right': 'E'}
         direction = action_to_direction[action]
-        self.player.move_towards(direction)
+        self.player.try_moving_towards(direction)
         
-                          
-    
+        
     def stop_game(self):
         self.game_over = True
         

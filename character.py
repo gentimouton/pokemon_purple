@@ -5,16 +5,15 @@ from level import dir_vectors, TILE_W, TILE_H
 
 
 class Character(pygame.sprite.DirtySprite):
+    base_move_speed = 1.0  # cells per second
     def __init__(self, level, frames, containers, pos=(0, 0)):
         # frames: 6 images (front, back, left, run front, run back, run left)
         # containers: list of sprite groups to join
         pygame.sprite.DirtySprite.__init__(self, *containers)
-        self.pushable = False
         self.x, self.y = pos
         self._moving_delta = None  # non null = moving
         self._moving_from = None
         self.is_moving = False
-        self.base_move_speed = 1.0  # cells per second
         self._inbound_speed = self._outbound_speed = self.base_move_speed 
         self.dir = 'S'
         self.standing_frames = {
@@ -44,28 +43,32 @@ class Character(pygame.sprite.DirtySprite):
     pos = property(_get_pos, _set_pos)
             
     
-    def move_towards(self, direction):
+    def try_moving_towards(self, direction):
         if self.is_moving:
             return  # cant move if animation in progress
         self.dir = direction  # face the direction even if staying in place
-        pos, delta, in_speed, out_speed = self.compute_movement(direction)
-        self.start_motion(pos, delta, in_speed, out_speed)
-        self.level.move_character_to(self, pos)
-
+        outcome, pos, delta, in_speed, out_speed = self.compute_movement(direction)
+        if outcome in ('stay','move'):
+            self.start_motion(pos, delta, in_speed, out_speed)
+            self.level.move_character_to(self, pos)
+        elif outcome == 'encounter':
+            print 'encounter'
 
     def compute_movement(self, direction):
-        # return my future position, and the delta and speed to get there 
+        """ return outcome, future pos, and the delta and speed to get there
+        possible outcomes: encounter, stay, move
+        """
         level = self.level
         target_pos, delta = level.get_destination(self.pos, direction)
         
         if target_pos == None:  # I am trying to go out of bounds
             speed = self.base_move_speed
-            return self.pos, (0, 0), speed, speed
+            return 'stay', self.pos, (0, 0), speed, speed
         
         destination_speed_penalty = level.get_terrain_penalty(target_pos)
         if destination_speed_penalty == 1:  # terrain is blocking me
             speed = self.base_move_speed
-            return self.pos, (0, 0), speed, speed
+            return 'stay', self.pos, (0, 0), speed, speed
         
         npc = self.level.get_occupancy(target_pos)
         if npc == None:  # terrain not blocking and no NPC on the way
@@ -73,13 +76,19 @@ class Character(pygame.sprite.DirtySprite):
             out_speed = self.base_move_speed * (1 - destination_speed_penalty)
             local_speed_penalty = level.get_terrain_penalty(self.pos)
             in_speed = self.base_move_speed * (1 - local_speed_penalty)
-            return target_pos, delta, in_speed, out_speed
+            speed = self.base_move_speed
+            return 'move', target_pos, delta, in_speed, out_speed
         
         # terrain not blocking, but NPC on destination
+        if npc.capturable:
+            speed = self.base_move_speed
+            return 'encounter', self.pos, (0, 0), speed, speed 
+        
+        # npc not capturable, can it move?    
         npc_target_pos, npc_delta = level.get_destination(target_pos, direction)
         if npc_target_pos == None:  # NPC will go out of bounds
             speed = self.base_move_speed
-            return self.pos, (0, 0), speed, speed
+            return 'stay', self.pos, (0, 0), speed, speed
 
         npc_destination_penalty = level.get_terrain_penalty(npc_target_pos)
         third_npc = level.get_occupancy(npc_target_pos)
@@ -94,12 +103,12 @@ class Character(pygame.sprite.DirtySprite):
             out_speed = min(my_out_speed, npc_out_speed)
             npc.start_motion(npc_target_pos, npc_delta, in_speed, out_speed)
             level.move_character_to(npc, npc_target_pos)
-            return target_pos, delta, in_speed, out_speed
+            return 'move', target_pos, delta, in_speed, out_speed
         
         # NPC going out of bounds, or not pushable, or blocked by 3rd NPC
         speed = self.base_move_speed
-        return self.pos, (0, 0), speed, speed
-                
+        return 'stay', self.pos, (0, 0), speed, speed
+
     
     def start_motion(self, target_pos, delta, speed1, speed2):
         self._moving_from = self.pos
@@ -159,6 +168,9 @@ class Character(pygame.sprite.DirtySprite):
 
 
 class WanderingNPC(Character):
+    pushable = False
+    capturable = False
+    base_move_period = 4 # move every 4 seconds 
     def __init__(self, level, frames, containers, pos=(0, 0)):
         Character.__init__(self, level, frames, containers, pos)
         self.move_timer = 0
@@ -167,18 +179,31 @@ class WanderingNPC(Character):
         Character.update(self, fps)
         if self.move_timer == 0:
             direction = random.choice(dir_vectors.keys())
-            self.move_towards(direction)
-            self.move_timer = fps * 4  # try moving every 4 seconds
+            self.try_moving_towards(direction)
+            self.move_timer = fps * self.base_move_period
         else:
             self.move_timer -= 1
             
 
 class RockNPC(Character):
+    pushable = True
+    capturable = False
+    base_move_speed = 1  # cells per second
     def __init__(self, level, frames, containers, pos=(0, 0)):
         Character.__init__(self, level, frames, containers, pos)
-        self.pushable = True
-        self.base_move_speed = 1  # cells per second
         # hack to prevent rocks from alternating sprite when being pushed
         self.standing_frames['E'] = self.standing_frames['W']
         self.moving_frames['S'].pop()
         self.moving_frames['N'].pop()
+
+
+class MonsterNPC(WanderingNPC):
+    capturable = True
+    pushable = False
+    base_move_period = 2.5 # move every 2.5 seconds
+    
+
+class Player(Character):
+    pushable = False
+    capturable = False
+    base_move_speed = 5 # cells per second
