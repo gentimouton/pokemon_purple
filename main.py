@@ -10,6 +10,7 @@ from level import Level, TILE_W, TILE_H
 
 
 SCREEN_W, SCREEN_H = 512, 512
+FPS = 60
 
 random.seed(1)
 
@@ -30,15 +31,9 @@ def load_sprites():
     return sprites
 
 
-class Game():
-    
-    def __init__(self):
-        pygame.init()
-        self.fps = 60
-        self.game_over = False
-        self.clock = pygame.time.Clock()
-        self.controller = InputController(self)
-        self.screen = pygame.display.set_mode((SCREEN_W, SCREEN_H))
+class WorldMode():
+    def __init__(self, screen):
+        self.screen = screen
         self.level = Level()
         self.bg = self.level.pre_render_map()
         self.allsprites = load_sprites()
@@ -49,14 +44,13 @@ class Game():
         monster = MonsterNPC(self.level, self.allsprites[4], [self.sprites], (3,3))
         for char in [self.player, girl, rock, monster]:
             self.sprites.change_layer(char, 1)
-        self.sprites.change_layer(self.player, 1)
         self.screen.fill((0, 0, 0))
         self.screen.blit(self.bg, (0, 0))
         pygame.display.flip()
         
     def render(self):
         self.sprites.clear(self.screen, self.bg)
-        self.sprites.update(self.fps)
+        self.sprites.update(FPS)
         changed_rects = self.sprites.draw(self.screen)
         pygame.display.update(changed_rects)
     
@@ -65,6 +59,19 @@ class Game():
         direction = action_to_direction[action]
         self.player.try_moving_towards(direction)
         
+    
+class Game():
+    
+    def __init__(self):
+        pygame.init()
+        self.game_over = False
+        self.clock = pygame.time.Clock()
+        self.controller = InputController(self)
+        self.screen = pygame.display.set_mode((SCREEN_W, SCREEN_H))
+        self.world_mode = WorldMode(self.screen)
+        
+    def do_action(self, action):
+        self.world_mode.do_action(action)
         
     def stop_game(self):
         self.game_over = True
@@ -72,8 +79,8 @@ class Game():
     def run(self):
         while not self.game_over: 
             self.controller.process_inputs()
-            self.render()
-            self.clock.tick(self.fps)
+            self.world_mode.render()
+            self.clock.tick(FPS)
 
 
 if __name__ == "__main__":
