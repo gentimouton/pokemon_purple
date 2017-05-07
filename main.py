@@ -7,7 +7,7 @@ from encounter import EncounterMode
 from world import WorldMode
 
 
-SCREEN_W, SCREEN_H = 512, 512
+SCREEN_W, SCREEN_H = 16 * 32, 16 * 32  # 16x16 cells of 32px
 FPS = 60
 
 random.seed(1)
