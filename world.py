@@ -49,11 +49,14 @@ class WorldMode():
         Return None if mode is unchanged.
         """
         action_to_dir = {'up': 'N', 'down': 'S', 'left': 'W', 'right': 'E'}
+        if action not in action_to_dir.keys():
+            return None
+
         direction = action_to_dir[action]
         trigger_encounter = self.player.try_moving_towards(direction)
         if trigger_encounter:
             return 'encounter'
-    
+        
     def tick(self, fps):
         self.sprites.clear(self.screen, self.bg)
         self.sprites.update(fps)
