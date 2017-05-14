@@ -72,8 +72,8 @@ class Character(pygame.sprite.DirtySprite):
             speed = self.base_move_speed
             return 'stay', self.pos, (0, 0), speed, speed
         
-        npc = self.level.get_occupancy(target_pos)
-        if npc == None:  # terrain not blocking and no NPC on the way
+        target = self.level.get_occupancy(target_pos)
+        if target == None:  # terrain not blocking and no NPC on the way
             # delta and target_pos are correct and stay unchanged
             out_speed = self.base_move_speed * (1 - destination_speed_penalty)
             local_speed_penalty = level.get_terrain_penalty(self.pos)
@@ -81,12 +81,12 @@ class Character(pygame.sprite.DirtySprite):
             speed = self.base_move_speed
             return 'move', target_pos, delta, in_speed, out_speed
         
-        # terrain not blocking, but NPC on destination
-        if npc.encounterable:
+        # terrain not blocking, but encounterable entity on destination cell
+        if target.encounterable:
             speed = self.base_move_speed
             return 'encounter', self.pos, (0, 0), speed, speed 
         
-        # npc not encounterable, can it move?    
+        # target not encounterable, can it move?    
         npc_target_pos, npc_delta = level.get_destination(target_pos, direction)
         if npc_target_pos == None:  # NPC will go out of bounds
             speed = self.base_move_speed
@@ -95,16 +95,16 @@ class Character(pygame.sprite.DirtySprite):
         npc_destination_penalty = level.get_terrain_penalty(npc_target_pos)
         third_npc = level.get_occupancy(npc_target_pos)
         # can push NPC
-        if npc.pushable and npc_destination_penalty != 1 and not third_npc:
+        if target.pushable and npc_destination_penalty != 1 and not third_npc:
             my_out_speed = self.base_move_speed * (1 - destination_speed_penalty)
             local_speed_penalty = level.get_terrain_penalty(self.pos)
             my_in_speed = self.base_move_speed * (1 - local_speed_penalty)
-            npc_out_speed = npc.base_move_speed * (1 - npc_destination_penalty)
-            npc_in_speed = npc.base_move_speed * (1 - destination_speed_penalty)
+            npc_out_speed = target.base_move_speed * (1 - npc_destination_penalty)
+            npc_in_speed = target.base_move_speed * (1 - destination_speed_penalty)
             in_speed = min(my_in_speed, npc_in_speed)
             out_speed = min(my_out_speed, npc_out_speed)
-            npc.start_motion(npc_target_pos, npc_delta, in_speed, out_speed)
-            level.move_character_to(npc, npc_target_pos)
+            target.start_motion(npc_target_pos, npc_delta, in_speed, out_speed)
+            level.move_character_to(target, npc_target_pos)
             return 'move', target_pos, delta, in_speed, out_speed
         
         # NPC going out of bounds, or not pushable, or blocked by 3rd NPC
