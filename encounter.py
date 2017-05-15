@@ -11,6 +11,7 @@ ICON_W, ICON_H = 8, 8
 # pygame.display.init() # OK to init multiple times
 # pygame.font.init()
 
+
 class EncounterMode():
     def __init__(self, screen):
         self.screen = screen
@@ -46,7 +47,7 @@ class EncounterMode():
             self.sprites.change_layer(char, 1)
         
         
-        self.reset()
+        # self.resume()
     
     def make_bg(self):
         """ Build all background elements. Return image.
@@ -101,7 +102,7 @@ class EncounterMode():
         return sprites
     
         
-    def do_action(self, action):
+    def process_action(self, action):
         """ action = 'up', 'down', 'right', or 'left'. 
         Return the name of the mode to execute next.
         Return None if mode is unchanged.
@@ -125,7 +126,7 @@ class EncounterMode():
         self.cursor_spr.pos = pos
         return None
     
-    def reset(self):
+    def resume(self):
         self.screen.fill((0, 0, 0))
         self.screen.blit(self.bg, (0, 0))
         pygame.display.flip()
@@ -161,17 +162,16 @@ class EncounterSprite(pygame.sprite.DirtySprite):
         pass
             
             
-            
     
 if __name__ == "__main__":
     from pygame.constants import QUIT, KEYDOWN, K_ESCAPE, \
-    K_UP, K_DOWN, K_LEFT, K_RIGHT, K_RETURN, K_w, K_s, K_a, K_d
+    K_UP, K_DOWN, K_LEFT, K_RIGHT, K_RETURN, K_w, K_s, K_a, K_d, K_KP_ENTER
     
     pygame.init()
     
     _key_map = { K_UP: 'up', K_DOWN: 'down', K_LEFT: 'left', K_RIGHT: 'right',
                  K_w: 'up', K_s: 'down', K_a: 'left', K_d: 'right',
-                 K_RETURN: 'enter'}
+                 K_RETURN: 'enter', K_KP_ENTER: 'enter'}
 
     screen = pygame.display.set_mode((16 * GRID_W, 16 * GRID_H))
     fps = 60
@@ -183,7 +183,7 @@ if __name__ == "__main__":
             if e.type == QUIT or (e.type == KEYDOWN and e.key == K_ESCAPE):
                 game_over = True
             elif (e.type == KEYDOWN and e.key in _key_map.keys()):
-                if em.do_action(_key_map[e.key]) == 'world':
+                if em.process_action(_key_map[e.key]) == 'world':
                     game_over = True
         em.tick(fps)
         clock.tick(fps)

@@ -19,7 +19,7 @@ class WorldMode():
         rock = RockNPC(self.level, self.allsprites[3], [self.sprites], (3, 3))
         for char in [self.player, girl, rock, monster]:
             self.sprites.change_layer(char, 1)
-        self.reset()
+        #self.resume()
     
     def load_sprites(self):
         # front, back, left, run front, run back, run left
@@ -37,14 +37,14 @@ class WorldMode():
             sprites.append(line)
         return sprites
 
-    def reset(self):
+    def resume(self):
         self.screen.fill((0, 0, 0))
         self.screen.blit(self.bg, (0, 0))
         pygame.display.flip()
         for char in self.sprites:
             char.dirty = 1
         
-    def do_action(self, action):
+    def process_action(self, action):
         """ Return the name of the mode to execute next.
         Return None if mode is unchanged.
         """

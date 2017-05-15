@@ -1,9 +1,5 @@
 
 
-battle transition screen
-
-clean ending 
-
 battle with one option: scare away -> battle ends, pokemon runs away in map
 
 warp npc

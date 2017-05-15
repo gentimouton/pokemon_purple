@@ -1,6 +1,6 @@
 import pygame
 from pygame.constants import QUIT, KEYDOWN, K_ESCAPE, K_UP, K_DOWN, K_LEFT, \
-    K_RIGHT, K_w, K_s, K_a, K_d, K_RETURN
+    K_RIGHT, K_w, K_s, K_a, K_d, K_RETURN, K_KP_ENTER
 
 
 _key_mapping = { # maps pygame key to abstract controller action
@@ -12,7 +12,8 @@ _key_mapping = { # maps pygame key to abstract controller action
     K_a: 'left',
     K_RIGHT: 'right', 
     K_d: 'right',
-    K_RETURN: 'enter'
+    K_RETURN: 'enter',
+    K_KP_ENTER: 'enter'
     }
 
 class InputController():

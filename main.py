@@ -11,10 +11,10 @@ SCREEN_W, SCREEN_H = 16 * 32, 16 * 32  # 16x16 cells of 32px
 FPS = 60
 
 random.seed(1)
-    
+
 class Game():
     """ Manage modes. Tick and forward inputs to current mode.
-    A Mode must have reset(), do_action(action), and tick(FPS).
+    A Mode must have resume(), process_action(action), and tick(FPS).
     """
     def __init__(self):
         pygame.init()
@@ -28,10 +28,11 @@ class Game():
         self.cur_mode = self.modes['world']
         
     def do_action(self, action):
-        next_mode = self.cur_mode.do_action(action)
+        # some modes change via user actions.
+        next_mode = self.cur_mode.process_action(action)
         if next_mode:
             self.cur_mode = self.modes[next_mode]
-            self.cur_mode.reset()
+            self.cur_mode.resume()
         
     def stop_game(self):
         self.game_over = True
@@ -39,7 +40,11 @@ class Game():
     def run(self):
         while not self.game_over: 
             self.controller.process_inputs()
-            self.cur_mode.tick(FPS)
+            # some modes change via timers.
+            next_mode = self.cur_mode.tick(FPS)
+            if next_mode:
+                self.cur_mode = self.modes[next_mode]
+                self.cur_mode.resume()
             self.clock.tick(FPS)
             
 if __name__ == "__main__":
