@@ -4,6 +4,7 @@ from pygame.constants import RLEACCEL
 
 from character import Player, MonsterNPC, WanderingNPC, RockNPC
 from level import Level, TILE_W, TILE_H
+from scene import Scene, SCN_ENCOUNTER
 
 
 def load_sprites():
@@ -23,7 +24,7 @@ def load_sprites():
     return sprites
 
 
-class WorldMode():
+class WorldScene(Scene):
     def __init__(self, screen):
         self.screen = screen
         self.level = Level()
@@ -45,9 +46,9 @@ class WorldMode():
         for char in self.sprites:
             char.dirty = 1
         
-    def process_action(self, action):
-        """ Return the name of the mode to execute next.
-        Return None if mode is unchanged.
+    def process_input(self, action):
+        """ Return the name of the scene to execute next.
+        Return None if scene is unchanged.
         """
         action_to_dir = {'up': 'N', 'down': 'S', 'left': 'W', 'right': 'E'}
         if action not in action_to_dir.keys():
@@ -56,7 +57,7 @@ class WorldMode():
         direction = action_to_dir[action]
         trigger_encounter = self.player.try_moving_towards(direction)
         if trigger_encounter:
-            return 'encounter'
+            return SCN_ENCOUNTER
         
     def tick(self, fps):
         self.sprites.clear(self.screen, self.bg)

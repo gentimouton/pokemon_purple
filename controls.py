@@ -31,4 +31,4 @@ class InputController():
                 if key == K_ESCAPE:
                     self.game.stop_game()
                 elif key in _key_mapping.keys():
-                    self.game.do_action(_key_mapping[key])        
+                    self.game.process_input(_key_mapping[key])        

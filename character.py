@@ -4,6 +4,11 @@ import pygame
 from level import dir_vectors, TILE_W, TILE_H
 
 
+OUTCOME_STAY = 'stay'
+OUTCOME_MOVE = 'move' 
+OUTCOME_ENCOUNTER = 'encounter'
+
+
 class Character(pygame.sprite.DirtySprite):
     pushable = False
     is_monster = False # encounters need 2 Characters: 1 player and 1 monster 
@@ -56,7 +61,7 @@ class Character(pygame.sprite.DirtySprite):
             return  # cant move if animation in progress
         self.dir = direction  # face the direction even if staying in place
         outcome, pos, delta, in_speed, out_speed = self.compute_movement(direction)
-        if outcome in ('stay', 'move'):
+        if outcome in (OUTCOME_STAY, OUTCOME_MOVE):
             self.start_motion(pos, delta, in_speed, out_speed)
             self.level.move_character_to(self, pos)
         return 0
@@ -70,12 +75,12 @@ class Character(pygame.sprite.DirtySprite):
         
         if target_pos == None:  # I am trying to go out of bounds
             speed = self.base_move_speed
-            return 'stay', self.pos, (0, 0), speed, speed
+            return OUTCOME_STAY, self.pos, (0, 0), speed, speed
         
         destination_speed_penalty = level.get_terrain_penalty(target_pos)
         if destination_speed_penalty == 1:  # terrain is blocking me
             speed = self.base_move_speed
-            return 'stay', self.pos, (0, 0), speed, speed
+            return OUTCOME_STAY, self.pos, (0, 0), speed, speed
         
         target = self.level.get_occupancy(target_pos)
         if target == None:  # terrain not blocking and no NPC on the way
@@ -84,19 +89,19 @@ class Character(pygame.sprite.DirtySprite):
             local_speed_penalty = level.get_terrain_penalty(self.pos)
             in_speed = self.base_move_speed * (1 - local_speed_penalty)
             speed = self.base_move_speed
-            return 'move', target_pos, delta, in_speed, out_speed
+            return OUTCOME_MOVE, target_pos, delta, in_speed, out_speed
         
         # terrain not blocking, but monster on destination cell
-#         if target.is_monster:
-#             speed = self.base_move_speed
-#             return 'encounter', self.pos, (0, 0), speed, speed 
-#         
+        if target.is_monster:
+            speed = self.base_move_speed
+            return OUTCOME_ENCOUNTER, self.pos, (0, 0), speed, speed 
+
         # target not monster. Can it move?    
         npc_target_pos, npc_delta = level.get_destination(target_pos, direction)
         # NPCs and monsters cant push, or rock will go out of bounds.
         if (not self.is_player) or npc_target_pos == None:
             speed = self.base_move_speed
-            return 'stay', self.pos, (0, 0), speed, speed
+            return OUTCOME_STAY, self.pos, (0, 0), speed, speed
 
         npc_destination_penalty = level.get_terrain_penalty(npc_target_pos)
         third_npc = level.get_occupancy(npc_target_pos)
@@ -111,11 +116,11 @@ class Character(pygame.sprite.DirtySprite):
             out_speed = min(my_out_speed, npc_out_speed)
             target.start_motion(npc_target_pos, npc_delta, in_speed, out_speed)
             level.move_character_to(target, npc_target_pos)
-            return 'move', target_pos, delta, in_speed, out_speed
+            return OUTCOME_MOVE, target_pos, delta, in_speed, out_speed
         
         # NPC going out of bounds, or not pushable, or blocked by 3rd NPC
         speed = self.base_move_speed
-        return 'stay', self.pos, (0, 0), speed, speed
+        return OUTCOME_STAY, self.pos, (0, 0), speed, speed
 
     
     def start_motion(self, target_pos, delta, speed1, speed2):
@@ -217,11 +222,11 @@ class MonsterNPC(WanderingNPC):
             return  # cant move if animation in progress
         self.dir = direction  # face the direction even if staying in place
         outcome, pos, delta, in_speed, out_speed = self.compute_movement(direction)
-        if outcome in ('stay', 'move'):
+        if outcome in (OUTCOME_STAY, OUTCOME_MOVE):
             self.start_motion(pos, delta, in_speed, out_speed)
             self.level.move_character_to(self, pos)
             return 0
-        elif outcome == 'encounter':
+        elif outcome == OUTCOME_ENCOUNTER:
             return 1
 
 class Player(Character):
@@ -238,10 +243,10 @@ class Player(Character):
             return  # cant move if animation in progress
         self.dir = direction  # face the direction even if staying in place
         outcome, pos, delta, in_speed, out_speed = self.compute_movement(direction)
-        if outcome in ('stay', 'move'):
+        if outcome in (OUTCOME_STAY, OUTCOME_MOVE):
             self.start_motion(pos, delta, in_speed, out_speed)
             self.level.move_character_to(self, pos)
             return 0
-        elif outcome == 'encounter':
+        elif outcome == OUTCOME_ENCOUNTER:
             return 1
     

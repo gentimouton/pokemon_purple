@@ -2,6 +2,9 @@ import pygame
 from pygame.color import Color
 from pygame.constants import RLEACCEL
 
+from scene import Scene, SCN_WORLD
+
+
 
 PORTRAIT_W, PORTRAIT_H = 56, 56  # each image is 56 x 56px, and 2x zoom 
 GRID_W, GRID_H = 32, 32  # 16 x 16 grid of 32px cells
@@ -11,17 +14,39 @@ ICON_W, ICON_H = 8, 8
 # pygame.display.init() # OK to init multiple times
 # pygame.font.init()
 
+# util
+def load_sprites(filename, spr_w, spr_h, display_w, display_h, flip_h=False):
+    """
+    Return an array of sprites loaded from filename.
+    (spr_w, spr_h) is the expected size of each sprite.
+    flip_h=True to flip the sprites horizontally.
+    """
+    chars_img = pygame.image.load(filename).convert()
+    chars_img.set_colorkey(Color(255, 0, 255), RLEACCEL)
+    image_w, image_h = chars_img.get_size()
+    sprites = []
+    for spr_y in range(0, image_h // spr_h):
+        for spr_x in range(0, image_w // spr_w):
+            rect = (spr_x * spr_w, spr_y * spr_h, spr_w, spr_h)
+            img = chars_img.subsurface(rect)
+            img = pygame.transform.flip(img, flip_h, False)
+            size = (display_w * GRID_W, display_h * GRID_H)
+            img = pygame.transform.scale(img, size)
+            sprites.append(img)
+    return sprites
 
-class EncounterMode():
+
+class EncounterScene(Scene):
     def __init__(self, screen):
         self.screen = screen
         
         # load sprites
-        self.front_sprites = self.load_sprites('assets/monsters_front.png',
-                                               PORTRAIT_W, PORTRAIT_H, 4, 4, True)
-        self.back_sprites = self.load_sprites('assets/player_back.png',
-                                              GRID_W, GRID_H, 4, 4)
-        self.icon_sprites = self.load_sprites('assets/icons.png', ICON_W, ICON_H, 1, 1)
+        self.front_sprites = load_sprites('assets/monsters_front.png',
+                                          PORTRAIT_W, PORTRAIT_H, 4, 4, True)
+        self.back_sprites = load_sprites('assets/player_back.png',
+                                         GRID_W, GRID_H, 4, 4)
+        self.icon_sprites = load_sprites('assets/icons.png',
+                                         ICON_W, ICON_H, 1, 1)
         self.sprites = pygame.sprite.LayeredDirty()
         
         # build menu struct
@@ -81,28 +106,8 @@ class EncounterMode():
         bg.blit(surf, (10 * GRID_W, 10 * GRID_H), menu_item_area)
         return bg
     
-    def load_sprites(self, filename, spr_w, spr_h, display_w, display_h, flip_h=False):
-        """
-        Return an array of sprites loaded from filename.
-        (spr_w, spr_h) is the expected size of each sprite.
-        flip_h=True to flip the sprites horizontally.
-        """
-        chars_img = pygame.image.load(filename).convert()
-        chars_img.set_colorkey(Color(255, 0, 255), RLEACCEL)
-        image_w, image_h = chars_img.get_size()
-        sprites = []
-        for spr_y in range(0, image_h // spr_h):
-            for spr_x in range(0, image_w // spr_w):
-                rect = (spr_x * spr_w, spr_y * spr_h, spr_w, spr_h)
-                img = chars_img.subsurface(rect)
-                img = pygame.transform.flip(img, flip_h, False)
-                size = (display_w * GRID_W, display_h * GRID_H)
-                img = pygame.transform.scale(img, size)
-                sprites.append(img)
-        return sprites
-    
         
-    def process_action(self, action):
+    def process_input(self, action):
         """ action = 'up', 'down', 'right', or 'left'. 
         Return the name of the mode to execute next.
         Return None if mode is unchanged.
@@ -111,7 +116,7 @@ class EncounterMode():
         if action == 'enter':
             choice = self.menus[y][x]
             if choice == 'Scare':
-                return 'world'
+                return SCN_WORLD
         
         if action == 'up':
             y = (y - 1) % len(self.menus)
@@ -176,14 +181,14 @@ if __name__ == "__main__":
     screen = pygame.display.set_mode((16 * GRID_W, 16 * GRID_H))
     fps = 60
     clock = pygame.time.Clock()
-    em = EncounterMode(screen)
+    em = EncounterScene(screen)
     game_over = False
     while not game_over:
         for e in pygame.event.get():
             if e.type == QUIT or (e.type == KEYDOWN and e.key == K_ESCAPE):
                 game_over = True
             elif (e.type == KEYDOWN and e.key in _key_map.keys()):
-                if em.process_action(_key_map[e.key]) == 'world':
+                if em.process_input(_key_map[e.key]) == 'world':
                     game_over = True
         em.tick(fps)
         clock.tick(fps)
