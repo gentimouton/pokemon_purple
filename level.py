@@ -3,10 +3,12 @@ from configparser import ConfigParser
 
 import pygame
 
+from constants import DIR_N, DIR_S, DIR_E, DIR_W
+
 
 TILE_W, TILE_H = 16 * 2, 16 * 2  # 16x16 tiles and 2x zoom
 
-dir_vectors = {'N': (0, -1), 'S': (0, 1), 'E': (1, 0), 'W': (-1, 0)}
+dir_vectors = {DIR_N: (0, -1), DIR_S: (0, 1), DIR_E: (1, 0), DIR_W: (-1, 0)}
 
 
 def load_tileset():

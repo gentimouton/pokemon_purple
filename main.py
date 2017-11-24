@@ -2,14 +2,12 @@ import random
 
 import pygame
 
+from constants import SCREEN_SIZE, FPS
 from controls import InputController
 from encounter import EncounterScene
 from scene import SCN_WORLD, SCN_ENCOUNTER
 from world import WorldScene
 
-
-SCREEN_W, SCREEN_H = 16 * 32, 16 * 32  # 16x16 cells of 32px
-FPS = 60
 
 random.seed(1)
 
@@ -22,9 +20,9 @@ class Game():
         self.game_over = False
         self.clock = pygame.time.Clock()
         self.controller = InputController(self)
-        self.screen = pygame.display.set_mode((SCREEN_W, SCREEN_H))
-        self.scenes = {SCN_WORLD: WorldScene(self.screen),
-                      SCN_ENCOUNTER: EncounterScene(self.screen)
+        self.screen = pygame.display.set_mode((SCREEN_SIZE, SCREEN_SIZE))
+        self.scenes = {SCN_WORLD: WorldScene(self),
+                      SCN_ENCOUNTER: EncounterScene(self)
                       }
         self.cur_scene = self.scenes[SCN_WORLD]
         
@@ -36,7 +34,7 @@ class Game():
             self.cur_scene = self.scenes[next_scene]
             self.cur_scene.resume()
         
-    def stop_game(self):
+    def quit_game(self):
         self.game_over = True
         
     def run(self):

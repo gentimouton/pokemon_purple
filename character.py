@@ -1,12 +1,10 @@
 import random
 
 import pygame
+
+from constants import DIR_S, DIR_N, DIR_W, DIR_E, OUTCOME_STAY, OUTCOME_MOVE, \
+    OUTCOME_ENCOUNTER
 from level import dir_vectors, TILE_W, TILE_H
-
-
-OUTCOME_STAY = 'stay'
-OUTCOME_MOVE = 'move' 
-OUTCOME_ENCOUNTER = 'encounter'
 
 
 class Character(pygame.sprite.DirtySprite):
@@ -25,18 +23,18 @@ class Character(pygame.sprite.DirtySprite):
         self._moving_from = None
         self.is_moving = False
         self._inbound_speed = self._outbound_speed = self.base_move_speed 
-        self.dir = 'S'
+        self.dir = DIR_S
         self.standing_frames = {
-            'S': [frames[0]],
-            'N': [frames[1]],
-            'W': [frames[2]],
-            'E': [pygame.transform.flip(frames[2], True, False)]
+            DIR_S: [frames[0]],
+            DIR_N: [frames[1]],
+            DIR_W: [frames[2]],
+            DIR_E: [pygame.transform.flip(frames[2], True, False)]
             }
         self.moving_frames = {
-            'S': [frames[3], pygame.transform.flip(frames[3], True, False)],
-            'N': [frames[4], pygame.transform.flip(frames[4], True, False)],
-            'W': [frames[5]],
-            'E': [pygame.transform.flip(frames[5], True, False)]
+            DIR_S: [frames[3], pygame.transform.flip(frames[3], True, False)],
+            DIR_N: [frames[4], pygame.transform.flip(frames[4], True, False)],
+            DIR_W: [frames[5]],
+            DIR_E: [pygame.transform.flip(frames[5], True, False)]
             }
         self.image = self.standing_frames[self.dir][0]
         self.rect = pygame.Rect(pos[0] * TILE_W, pos[1] * TILE_H, TILE_W, TILE_H)
@@ -180,6 +178,19 @@ class Character(pygame.sprite.DirtySprite):
         
 
 
+class RockNPC(Character):
+    pushable = True
+    is_monster = False
+    is_player = False
+    base_move_speed = 1  # cells per second
+    def __init__(self, level, frames, containers, pos=(0, 0)):
+        Character.__init__(self, level, frames, containers, pos)
+        # hack to prevent rocks from alternating sprite when being pushed
+        self.standing_frames[DIR_E] = self.standing_frames[DIR_W]
+        self.moving_frames[DIR_S].pop()
+        self.moving_frames[DIR_N].pop()
+        
+        
 class WanderingNPC(Character): 
     def __init__(self, level, frames, containers, pos=(0, 0)):
         Character.__init__(self, level, frames, containers, pos)
@@ -194,19 +205,6 @@ class WanderingNPC(Character):
         else:
             self.move_timer -= 1.0 / fps
             
-
-class RockNPC(Character):
-    pushable = True
-    is_monster = False
-    is_player = False
-    base_move_speed = 1  # cells per second
-    def __init__(self, level, frames, containers, pos=(0, 0)):
-        Character.__init__(self, level, frames, containers, pos)
-        # hack to prevent rocks from alternating sprite when being pushed
-        self.standing_frames['E'] = self.standing_frames['W']
-        self.moving_frames['S'].pop()
-        self.moving_frames['N'].pop()
-
 
 class MonsterNPC(WanderingNPC):
     pushable = False
@@ -228,6 +226,7 @@ class MonsterNPC(WanderingNPC):
             return 0
         elif outcome == OUTCOME_ENCOUNTER:
             return 1
+
 
 class Player(Character):
     pushable = False

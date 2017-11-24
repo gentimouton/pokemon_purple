@@ -2,8 +2,8 @@ import pygame
 from pygame.color import Color
 from pygame.constants import RLEACCEL
 
+from constants import BTN_RIGHT, BTN_SUBMIT, BTN_UP, BTN_DOWN, BTN_LEFT
 from scene import Scene, SCN_WORLD
-
 
 
 PORTRAIT_W, PORTRAIT_H = 56, 56  # each image is 56 x 56px, and 2x zoom 
@@ -14,31 +14,10 @@ ICON_W, ICON_H = 8, 8
 # pygame.display.init() # OK to init multiple times
 # pygame.font.init()
 
-# util
-def load_sprites(filename, spr_w, spr_h, display_w, display_h, flip_h=False):
-    """
-    Return an array of sprites loaded from filename.
-    (spr_w, spr_h) is the expected size of each sprite.
-    flip_h=True to flip the sprites horizontally.
-    """
-    chars_img = pygame.image.load(filename).convert()
-    chars_img.set_colorkey(Color(255, 0, 255), RLEACCEL)
-    image_w, image_h = chars_img.get_size()
-    sprites = []
-    for spr_y in range(0, image_h // spr_h):
-        for spr_x in range(0, image_w // spr_w):
-            rect = (spr_x * spr_w, spr_y * spr_h, spr_w, spr_h)
-            img = chars_img.subsurface(rect)
-            img = pygame.transform.flip(img, flip_h, False)
-            size = (display_w * GRID_W, display_h * GRID_H)
-            img = pygame.transform.scale(img, size)
-            sprites.append(img)
-    return sprites
-
 
 class EncounterScene(Scene):
-    def __init__(self, screen):
-        self.screen = screen
+    def __init__(self, scene_manager):
+        Scene.__init__(self, scene_manager)
         
         # load sprites
         self.front_sprites = load_sprites('assets/monsters_front.png',
@@ -108,23 +87,22 @@ class EncounterScene(Scene):
     
         
     def process_input(self, action):
-        """ action = 'up', 'down', 'right', or 'left'. 
-        Return the name of the mode to execute next.
+        """ Return the name of the mode to execute next.
         Return None if mode is unchanged.
         """ 
         y, x = self.cur_menu
-        if action == 'enter':
+        if action == BTN_SUBMIT:
             choice = self.menus[y][x]
             if choice == 'Scare':
                 return SCN_WORLD
         
-        if action == 'up':
+        if action == BTN_UP:
             y = (y - 1) % len(self.menus)
-        elif action == 'down':
+        elif action == BTN_DOWN:
             y = (y + 1) % len(self.menus)
-        elif action == 'left':
+        elif action == BTN_LEFT:
             x = (x - 1) % len(self.menus[0])
-        elif action == 'right':
+        elif action == BTN_RIGHT:
             x = (x + 1) % len(self.menus[0])
         self.cur_menu = y, x
         pos = (1 + x * 8, 10 + y * 2)
@@ -132,16 +110,16 @@ class EncounterScene(Scene):
         return None
     
     def resume(self):
-        self.screen.fill((0, 0, 0))
-        self.screen.blit(self.bg, (0, 0))
+        self._screen.fill((0, 0, 0))
+        self._screen.blit(self.bg, (0, 0))
         pygame.display.flip()
         for char in self.sprites:
             char.dirty = 1
     
     def tick(self, fps):
-        self.sprites.clear(self.screen, self.bg)
+        self.sprites.clear(self._screen, self.bg)
         self.sprites.update(fps)
-        changed_rects = self.sprites.draw(self.screen)
+        changed_rects = self.sprites.draw(self._screen)
         pygame.display.update(changed_rects)
                  
 
@@ -167,16 +145,41 @@ class EncounterSprite(pygame.sprite.DirtySprite):
         pass
             
             
-    
+ 
+############################################################
+####################   UTILS   #############################
+############################################################
+
+
+def load_sprites(filename, spr_w, spr_h, display_w, display_h, flip_h=False):
+    """
+    Return an array of sprites loaded from filename.
+    (spr_w, spr_h) is the expected size of each sprite.
+    flip_h=True to flip the sprites horizontally.
+    """
+    chars_img = pygame.image.load(filename).convert()
+    chars_img.set_colorkey(Color(255, 0, 255), RLEACCEL)
+    image_w, image_h = chars_img.get_size()
+    sprites = []
+    for spr_y in range(0, image_h // spr_h):
+        for spr_x in range(0, image_w // spr_w):
+            rect = (spr_x * spr_w, spr_y * spr_h, spr_w, spr_h)
+            img = chars_img.subsurface(rect)
+            img = pygame.transform.flip(img, flip_h, False)
+            size = (display_w * GRID_W, display_h * GRID_H)
+            img = pygame.transform.scale(img, size)
+            sprites.append(img)
+    return sprites
+   
 if __name__ == "__main__":
     from pygame.constants import QUIT, KEYDOWN, K_ESCAPE, \
     K_UP, K_DOWN, K_LEFT, K_RIGHT, K_RETURN, K_w, K_s, K_a, K_d, K_KP_ENTER
     
     pygame.init()
     
-    _key_map = { K_UP: 'up', K_DOWN: 'down', K_LEFT: 'left', K_RIGHT: 'right',
-                 K_w: 'up', K_s: 'down', K_a: 'left', K_d: 'right',
-                 K_RETURN: 'enter', K_KP_ENTER: 'enter'}
+    _key_map = { K_UP: BTN_UP, K_DOWN: BTN_DOWN, K_LEFT: BTN_LEFT,
+                K_RIGHT: BTN_RIGHT, K_w: BTN_UP, K_s: BTN_DOWN, K_a: BTN_LEFT,
+                K_d: BTN_RIGHT, K_RETURN: BTN_SUBMIT, K_KP_ENTER: BTN_SUBMIT }
 
     screen = pygame.display.set_mode((16 * GRID_W, 16 * GRID_H))
     fps = 60
