@@ -40,7 +40,7 @@ class Game():
     def run(self):
         while not self.game_over: 
             self.controller.process_inputs()
-            # some modes change via timers.
+            # some modes change via timers or NPC actions.
             next_mode = self.cur_mode.tick(FPS)
             if next_mode:
                 self.cur_mode = self.modes[next_mode]

@@ -91,8 +91,8 @@ class EncounterMode():
         chars_img.set_colorkey(Color(255, 0, 255), RLEACCEL)
         image_w, image_h = chars_img.get_size()
         sprites = []
-        for spr_y in range(0, image_h / spr_h):
-            for spr_x in range(0, image_w / spr_w):
+        for spr_y in range(0, image_h // spr_h):
+            for spr_x in range(0, image_w // spr_w):
                 rect = (spr_x * spr_w, spr_y * spr_h, spr_w, spr_h)
                 img = chars_img.subsurface(rect)
                 img = pygame.transform.flip(img, flip_h, False)

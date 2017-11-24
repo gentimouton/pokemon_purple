@@ -6,12 +6,29 @@ from character import Player, MonsterNPC, WanderingNPC, RockNPC
 from level import Level, TILE_W, TILE_H
 
 
+def load_sprites():
+    # front, back, left, run front, run back, run left
+    chars_img = pygame.image.load('assets/character_sprites.png').convert()
+    chars_img.set_colorkey(Color(255, 0, 255), RLEACCEL)
+    chars_img = pygame.transform.scale2x(chars_img)
+    spr_w, spr_h = TILE_W, TILE_H
+    image_w, image_h = chars_img.get_size()
+    sprites = []
+    for spr_y in range(0, image_h // spr_h):
+        line = []
+        for spr_x in range(0, image_w // spr_w):
+            rect = (spr_x * spr_w, spr_y * spr_h, spr_w, spr_h)
+            line.append(chars_img.subsurface(rect))
+        sprites.append(line)
+    return sprites
+
+
 class WorldMode():
     def __init__(self, screen):
         self.screen = screen
         self.level = Level()
         self.bg = self.level.pre_render_map()
-        self.allsprites = self.load_sprites()
+        self.allsprites = load_sprites()
         self.sprites = pygame.sprite.LayeredDirty()
         self.player = Player(self.level, self.allsprites[0], [self.sprites], (1, 1))
         monster = MonsterNPC(self.level, self.allsprites[4], [self.sprites], (1, 2))
@@ -20,22 +37,6 @@ class WorldMode():
         for char in [self.player, girl, rock, monster]:
             self.sprites.change_layer(char, 1)
         #self.resume()
-    
-    def load_sprites(self):
-        # front, back, left, run front, run back, run left
-        chars_img = pygame.image.load('assets/character_sprites.png').convert()
-        chars_img.set_colorkey(Color(255, 0, 255), RLEACCEL)
-        chars_img = pygame.transform.scale2x(chars_img)
-        spr_w, spr_h = TILE_W, TILE_H
-        image_w, image_h = chars_img.get_size()
-        sprites = []
-        for spr_y in range(0, image_h / spr_h):
-            line = []
-            for spr_x in range(0, image_w / spr_w):
-                rect = (spr_x * spr_w, spr_y * spr_h, spr_w, spr_h)
-                line.append(chars_img.subsurface(rect))
-            sprites.append(line)
-        return sprites
 
     def resume(self):
         self.screen.fill((0, 0, 0))

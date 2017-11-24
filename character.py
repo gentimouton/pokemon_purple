@@ -183,7 +183,7 @@ class WanderingNPC(Character):
     def update(self, fps):
         Character.update(self, fps)
         if self.move_timer <= 0:
-            direction = random.choice(dir_vectors.keys())
+            direction = random.choice(list(dir_vectors.keys()))
             self.try_moving_towards(direction)
             self.move_timer = self.base_move_period
         else:
@@ -208,7 +208,7 @@ class MonsterNPC(WanderingNPC):
     is_monster = True
     is_player = False
     base_move_period = 2.5  # move every 2.5 seconds
-        
+
     def try_moving_towards(self, direction):
         """ Make the character move. 
         Return whether the move triggered an encounter.
@@ -224,11 +224,10 @@ class MonsterNPC(WanderingNPC):
         elif outcome == 'encounter':
             return 1
 
-
 class Player(Character):
     pushable = False
     is_monster = False 
-    is_player = True # encounters need 2 Characters: 1 player and 1 monster
+    is_player = True
     base_move_speed = 5  # cells per second
     
     def try_moving_towards(self, direction):
@@ -245,3 +244,4 @@ class Player(Character):
             return 0
         elif outcome == 'encounter':
             return 1
+    

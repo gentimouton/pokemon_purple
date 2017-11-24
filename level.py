@@ -1,4 +1,5 @@
-import ConfigParser
+
+from configparser import ConfigParser
 
 import pygame
 
@@ -14,9 +15,9 @@ def load_tileset():
     tile_w, tile_h = TILE_W, TILE_H
     image_w, image_h = tileset_img.get_size()
     tileset = []
-    for tile_x in range(0, image_w / tile_w):
+    for tile_x in range(0, image_w // tile_w):
         line = []
-        for tile_y in range(0, image_h / tile_h):
+        for tile_y in range(0, image_h // tile_h):
             rect = (tile_x * tile_w, tile_y * tile_h, tile_w, tile_h)
             line.append(tileset_img.subsurface(rect))
         tileset.append(line)
@@ -25,7 +26,7 @@ def load_tileset():
 
 def load_map(filename):
     cell_types = {}
-    parser = ConfigParser.ConfigParser()
+    parser = ConfigParser()
     parser.read(filename)
     cells = parser.get("level", "cells").split("\n")
     for section in parser.sections():

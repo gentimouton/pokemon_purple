@@ -1,33 +1,33 @@
 [level]
 tileset = tileset.png
-cells = ....g..gggggggg.
-        ..gggggg..##g##g
-        g.....g......#..
-        gg...####g#g...#
-        g....g...g##...g
-        .g.###g..g#.g...
-        g...g.gg..g.....
-        g..###....g.g...
-        ....gg..g####g..
-        #..#..gg##gg#g..
-        gg....ggggg##g..
-        g###g.g######g..
-        gg.g....ggggg...
-        .g.....ggg.....g
-        #g..g...g..g...g
-        g.g...g..####...
+cells = ....G..GGGGGGGG.
+        ..GGGGGG..TTGTTG
+        G.....G......T..
+        GG...TTTTGTG...T
+        G....G...GTT...G
+        .G.TTTG..GT.G...
+        G...G.GG..G.....
+        G..TTT....G.G...
+        ....GG..GTTTTG..
+        T..T..GGTTGGTG..
+        GG....GGGGGTTG..
+        GTTTG.GTTTTTTG..
+        GG.G....GGGGG...
+        .G.....GGG.....G
+        TG..G...G..G...G
+        G.G...G..TTTT...
 
 [.]
 name = floor
 tileset_pos = 3, 0
 walkable = true
 
-[g]
+[G]
 name = grass
 tileset_pos = 2, 1
 walkable = true
 
-[#]
+[T]
 name = tree
 tileset_pos = 6, 1
 walkable = false
