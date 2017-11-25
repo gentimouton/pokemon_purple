@@ -4,10 +4,9 @@ from pygame.constants import RLEACCEL
 
 from character import Player, MonsterNPC, WanderingNPC, RockNPC, DIR_N, DIR_S, DIR_E, DIR_W
 from controls import BTN_UP, BTN_DOWN, BTN_LEFT, BTN_RIGHT
-from level import Level, TILE_W, TILE_H
+from level import Level
 from scene import Scene, SCN_ENCOUNTER
-
-
+from settings import TILE_SIZE_PX
 
 
 class WorldScene(Scene):
@@ -61,8 +60,8 @@ def load_sprites():
     # front, back, left, run front, run back, run left
     chars_img = pygame.image.load('assets/character_sprites.png').convert()
     chars_img.set_colorkey(Color(255, 0, 255), RLEACCEL)
-    chars_img = pygame.transform.scale2x(chars_img)
-    spr_w, spr_h = TILE_W, TILE_H
+    # chars_img = pygame.transform.scale2x(chars_img)
+    spr_w, spr_h = TILE_SIZE_PX, TILE_SIZE_PX
     image_w, image_h = chars_img.get_size()
     sprites = []
     for spr_y in range(0, image_h // spr_h):

@@ -2,12 +2,13 @@ import random
 
 import pygame
 
-from level import dir_vectors, TILE_W, TILE_H, DIR_S, DIR_N, DIR_W, DIR_E
+from level import dir_vectors, DIR_S, DIR_N, DIR_W, DIR_E
+from settings import TILE_SIZE_PX
 
 
-WORLD_ACTION_OUTCOME_STAY = 'stay'
-WORLD_ACTION_OUTCOME_MOVE = 'move' 
-WORLD_ACTION_OUTCOME_ENCOUNTER = 'encounter'
+WACT_OUTCOME_STAY = 'stay'
+WACT_OUTCOME_MOVE = 'move' 
+WACT_OUTCOME_ENCOUNTER = 'encounter'
 
 class Character(pygame.sprite.DirtySprite):
     pushable = False
@@ -39,7 +40,8 @@ class Character(pygame.sprite.DirtySprite):
             DIR_E: [pygame.transform.flip(frames[5], True, False)]
             }
         self.image = self.standing_frames[self.dir][0]
-        self.rect = pygame.Rect(pos[0] * TILE_W, pos[1] * TILE_H, TILE_W, TILE_H)
+        self.rect = pygame.Rect(pos[0] * TILE_SIZE_PX, pos[1] * TILE_SIZE_PX, 
+                                TILE_SIZE_PX, TILE_SIZE_PX)
         self._animation_index = 0
         self.level = level
         self.level.move_character_to(self, self.pos)
@@ -61,26 +63,26 @@ class Character(pygame.sprite.DirtySprite):
             return  # cant move if animation in progress
         self.dir = direction  # face the direction even if staying in place
         outcome, pos, delta, in_speed, out_speed = self.compute_movement(direction)
-        if outcome in (WORLD_ACTION_OUTCOME_STAY, WORLD_ACTION_OUTCOME_MOVE):
+        if outcome in (WACT_OUTCOME_STAY, WACT_OUTCOME_MOVE):
             self.start_motion(pos, delta, in_speed, out_speed)
             self.level.move_character_to(self, pos)
         return 0
 
     def compute_movement(self, direction):
         """ Return outcome, future pos, and the delta and speed to get there
-        possible outcomes: WORLD_ACTION_OUTCOME_STAY and such
+        possible outcomes: WACT_OUTCOME_STAY and such
         """
         level = self.level
         target_pos, delta = level.get_destination(self.pos, direction)
         
         if target_pos == None:  # I am trying to go out of bounds
             speed = self.base_move_speed
-            return WORLD_ACTION_OUTCOME_STAY, self.pos, (0, 0), speed, speed
+            return WACT_OUTCOME_STAY, self.pos, (0, 0), speed, speed
         
         destination_speed_penalty = level.get_terrain_penalty(target_pos)
         if destination_speed_penalty == 1:  # terrain is blocking me
             speed = self.base_move_speed
-            return WORLD_ACTION_OUTCOME_STAY, self.pos, (0, 0), speed, speed
+            return WACT_OUTCOME_STAY, self.pos, (0, 0), speed, speed
         
         target = self.level.get_occupancy(target_pos)
         if target == None:  # terrain not blocking and no NPC on the way
@@ -89,19 +91,19 @@ class Character(pygame.sprite.DirtySprite):
             local_speed_penalty = level.get_terrain_penalty(self.pos)
             in_speed = self.base_move_speed * (1 - local_speed_penalty)
             speed = self.base_move_speed
-            return WORLD_ACTION_OUTCOME_MOVE, target_pos, delta, in_speed, out_speed
+            return WACT_OUTCOME_MOVE, target_pos, delta, in_speed, out_speed
         
         # terrain not blocking, but monster on destination cell
         if target.is_monster:
             speed = self.base_move_speed
-            return WORLD_ACTION_OUTCOME_ENCOUNTER, self.pos, (0, 0), speed, speed 
+            return WACT_OUTCOME_ENCOUNTER, self.pos, (0, 0), speed, speed 
 
         # target not monster. Can it move?    
         npc_target_pos, npc_delta = level.get_destination(target_pos, direction)
         # NPCs and monsters cant push, or rock will go out of bounds.
         if (not self.is_player) or npc_target_pos == None:
             speed = self.base_move_speed
-            return WORLD_ACTION_OUTCOME_STAY, self.pos, (0, 0), speed, speed
+            return WACT_OUTCOME_STAY, self.pos, (0, 0), speed, speed
 
         npc_destination_penalty = level.get_terrain_penalty(npc_target_pos)
         third_npc = level.get_occupancy(npc_target_pos)
@@ -116,11 +118,11 @@ class Character(pygame.sprite.DirtySprite):
             out_speed = min(my_out_speed, npc_out_speed)
             target.start_motion(npc_target_pos, npc_delta, in_speed, out_speed)
             level.move_character_to(target, npc_target_pos)
-            return WORLD_ACTION_OUTCOME_MOVE, target_pos, delta, in_speed, out_speed
+            return WACT_OUTCOME_MOVE, target_pos, delta, in_speed, out_speed
         
         # NPC going out of bounds, or not pushable, or blocked by 3rd NPC
         speed = self.base_move_speed
-        return WORLD_ACTION_OUTCOME_STAY, self.pos, (0, 0), speed, speed
+        return WACT_OUTCOME_STAY, self.pos, (0, 0), speed, speed
 
     
     def start_motion(self, target_pos, delta, speed1, speed2):
@@ -175,8 +177,8 @@ class Character(pygame.sprite.DirtySprite):
                 
             xx = old_x + dx * progress
             yy = old_y + dy * progress
-            self.rect.x = int(xx * TILE_W)
-            self.rect.y = int(yy * TILE_H)
+            self.rect.x = int(xx * TILE_SIZE_PX)
+            self.rect.y = int(yy * TILE_SIZE_PX)
         
 
 
@@ -222,11 +224,11 @@ class MonsterNPC(WanderingNPC):
             return  # cant move if animation in progress
         self.dir = direction  # face the direction even if staying in place
         outcome, pos, delta, in_speed, out_speed = self.compute_movement(direction)
-        if outcome in (WORLD_ACTION_OUTCOME_STAY, WORLD_ACTION_OUTCOME_MOVE):
+        if outcome in (WACT_OUTCOME_STAY, WACT_OUTCOME_MOVE):
             self.start_motion(pos, delta, in_speed, out_speed)
             self.level.move_character_to(self, pos)
             return 0
-        elif outcome == WORLD_ACTION_OUTCOME_ENCOUNTER:
+        elif outcome == WACT_OUTCOME_ENCOUNTER:
             return 1
 
 
@@ -244,10 +246,10 @@ class Player(Character):
             return  # cant move if animation in progress
         self.dir = direction  # face the direction even if staying in place
         outcome, pos, delta, in_speed, out_speed = self.compute_movement(direction)
-        if outcome in (WORLD_ACTION_OUTCOME_STAY, WORLD_ACTION_OUTCOME_MOVE):
+        if outcome in (WACT_OUTCOME_STAY, WACT_OUTCOME_MOVE):
             self.start_motion(pos, delta, in_speed, out_speed)
             self.level.move_character_to(self, pos)
             return 0
-        elif outcome == WORLD_ACTION_OUTCOME_ENCOUNTER:
+        elif outcome == WACT_OUTCOME_ENCOUNTER:
             return 1
     

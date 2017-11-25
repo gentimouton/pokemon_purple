@@ -6,13 +6,8 @@ from controls import BTN_SUBMIT, BTN_UP, BTN_DOWN, BTN_LEFT, BTN_RIGHT
 from scene import Scene, SCN_WORLD
 
 
-PORTRAIT_W, PORTRAIT_H = 56, 56  # each image is 56 x 56px, and 2x zoom 
-GRID_W, GRID_H = 32, 32  # 16 x 16 grid of 32px cells
-ICON_W, ICON_H = 8, 8
-
-# pygame inits
-# pygame.display.init() # OK to init multiple times
-# pygame.font.init()
+GRID_SIZE_PX = 16  # in pixels. 
+N_GRID_CELLS = 16  # grid of 16x16 cells  
 
 
 class EncounterScene(Scene):
@@ -20,12 +15,9 @@ class EncounterScene(Scene):
         Scene.__init__(self, scene_manager)
         
         # load sprites
-        self.front_sprites = load_sprites('assets/monsters_front.png',
-                                          PORTRAIT_W, PORTRAIT_H, 4, 4, True)
-        self.back_sprites = load_sprites('assets/player_back.png',
-                                         GRID_W, GRID_H, 4, 4)
-        self.icon_sprites = load_sprites('assets/icons.png',
-                                         ICON_W, ICON_H, 1, 1)
+        self.front_sprites = load_sprites('assets/monsters_front.png', 4, True)
+        self.back_sprites = load_sprites('assets/player_back.png', 4)
+        self.icon_sprites = load_sprites('assets/icons.png', 1)
         self.sprites = pygame.sprite.LayeredDirty()
         
         # build menu struct
@@ -56,33 +48,33 @@ class EncounterScene(Scene):
     def make_bg(self):
         """ Build all background elements. Return image.
         """
-        bg = pygame.Surface((16 * GRID_W, 16 * GRID_H))
+        bg = pygame.Surface((N_GRID_CELLS * GRID_SIZE_PX, N_GRID_CELLS * GRID_SIZE_PX))
         bg.fill((255, 255, 255))
         # debugging grid
-        for x in range(1, 16):
-            start = x * GRID_W, 0
-            end = x * GRID_W, 16 * GRID_H
+        for x in range(1, N_GRID_CELLS):
+            start = x * GRID_SIZE_PX, 0
+            end = x * GRID_SIZE_PX, N_GRID_CELLS * GRID_SIZE_PX
             pygame.draw.line(bg, (200, 200, 200), start, end)
-        for y in range(1, 16):
-            start = 0, y * GRID_H
-            end = 16 * GRID_W, y * GRID_H
+        for y in range(1, N_GRID_CELLS):
+            start = 0, y * GRID_SIZE_PX
+            end = N_GRID_CELLS * GRID_SIZE_PX, y * GRID_SIZE_PX
             pygame.draw.line(bg, (200, 200, 200), start, end)
         # top HUD
-        start = (0, 1 * GRID_H)
-        end = (16 * GRID_W, 1 * GRID_H)
+        start = (0, 1 * GRID_SIZE_PX)
+        end = (N_GRID_CELLS * GRID_SIZE_PX, 1 * GRID_SIZE_PX)
         pygame.draw.line(bg, (0, 0, 0), start, end, 2)
         # bottom HUD
-        start = (0, 9 * GRID_H)
-        end = (16 * GRID_W, 9 * GRID_H)
+        start = (0, 9 * GRID_SIZE_PX)
+        end = (N_GRID_CELLS * GRID_SIZE_PX, 9 * GRID_SIZE_PX)
         pygame.draw.line(bg, (0, 0, 0), start, end, 2) 
         # menu choices
         # TODO: render via game font instead
-        font = pygame.font.SysFont("monospace", GRID_H)
-        menu_item_area = (0, 0, 5 * GRID_W, GRID_H)
+        font = pygame.font.SysFont("monospace", GRID_SIZE_PX)
+        menu_item_area = (0, 0, 5 * GRID_SIZE_PX, GRID_SIZE_PX)
         surf = font.render(self.menus[0][0], 1, (0, 0, 0))
-        bg.blit(surf, (2 * GRID_W, 10 * GRID_H), menu_item_area)
+        bg.blit(surf, (2 * GRID_SIZE_PX, 10 * GRID_SIZE_PX), menu_item_area)
         surf = font.render(self.menus[0][1], 1, (0, 0, 0))
-        bg.blit(surf, (10 * GRID_W, 10 * GRID_H), menu_item_area)
+        bg.blit(surf, (10 * GRID_SIZE_PX, 10 * GRID_SIZE_PX), menu_item_area)
         return bg
     
         
@@ -132,7 +124,7 @@ class EncounterSprite(pygame.sprite.DirtySprite):
         x, y = pos
         self.x, self.y = x, y
         self.dirty = 1
-        self.rect = pygame.Rect(x * GRID_W, y * GRID_H, GRID_W, GRID_H)
+        self.rect = pygame.Rect(x * GRID_SIZE_PX, y * GRID_SIZE_PX, GRID_SIZE_PX, GRID_SIZE_PX)
     pos = property(_get_pos, _set_pos)
     
     def __init__(self, image, containers, pos=(0, 0)):
@@ -150,26 +142,33 @@ class EncounterSprite(pygame.sprite.DirtySprite):
 ####################   UTILS   #############################
 ############################################################
 
+# filename -> size of sprites (in pixels) in that file. Sprites must be square.
+spr_size_map = {'assets/monsters_front.png': 56,
+            'assets/player_back.png': 32,
+            'assets/icons.png': 8
+            }
 
-def load_sprites(filename, spr_w, spr_h, display_w, display_h, flip_h=False):
+def load_sprites(filename, display_size, flip_h=False):
     """
     Return an array of sprites loaded from filename.
-    (spr_w, spr_h) is the expected size of each sprite.
+    display_size: number of tiles the sprite takes on the screen (scaling).
     flip_h=True to flip the sprites horizontally.
     """
     chars_img = pygame.image.load(filename).convert()
     chars_img.set_colorkey(Color(255, 0, 255), RLEACCEL)
     image_w, image_h = chars_img.get_size()
+    spr_size = spr_size_map[filename]
     sprites = []
-    for spr_y in range(0, image_h // spr_h):
-        for spr_x in range(0, image_w // spr_w):
-            rect = (spr_x * spr_w, spr_y * spr_h, spr_w, spr_h)
+    for spr_y in range(0, image_h // spr_size):
+        for spr_x in range(0, image_w // spr_size):
+            rect = (spr_x * spr_size, spr_y * spr_size, spr_size, spr_size)
             img = chars_img.subsurface(rect)
             img = pygame.transform.flip(img, flip_h, False)
-            size = (display_w * GRID_W, display_h * GRID_H)
+            size = (display_size * GRID_SIZE_PX, display_size * GRID_SIZE_PX)
             img = pygame.transform.scale(img, size)
             sprites.append(img)
     return sprites
+   
    
 if __name__ == "__main__":
     from pygame.constants import QUIT, KEYDOWN, K_ESCAPE, \
@@ -181,7 +180,8 @@ if __name__ == "__main__":
                 K_RIGHT: BTN_RIGHT, K_w: BTN_UP, K_s: BTN_DOWN, K_a: BTN_LEFT,
                 K_d: BTN_RIGHT, K_RETURN: BTN_SUBMIT, K_KP_ENTER: BTN_SUBMIT }
 
-    screen = pygame.display.set_mode((16 * GRID_W, 16 * GRID_H))
+    screen_res = N_GRID_CELLS * GRID_SIZE_PX
+    screen = pygame.display.set_mode((screen_res, screen_res))
     fps = 60
     clock = pygame.time.Clock()
     em = EncounterScene(screen)
@@ -191,7 +191,7 @@ if __name__ == "__main__":
             if e.type == QUIT or (e.type == KEYDOWN and e.key == K_ESCAPE):
                 game_over = True
             elif (e.type == KEYDOWN and e.key in _key_map.keys()):
-                if em.process_input(_key_map[e.key]) == 'world':
+                if em.process_input(_key_map[e.key]) == SCN_WORLD:
                     game_over = True
         em.tick(fps)
         clock.tick(fps)

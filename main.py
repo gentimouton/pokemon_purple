@@ -2,12 +2,13 @@ import random
 
 import pygame
 
-from constants import SCREEN_SIZE, FPS
+from settings import BASE_SCREEN_RES, FPS
 from controls import InputController
 from encounter import EncounterScene
 from scene import SCN_WORLD, SCN_ENCOUNTER
 from world import WorldScene
 
+import pview
 
 random.seed(1)
 
@@ -20,7 +21,9 @@ class Game():
         self.game_over = False
         self.clock = pygame.time.Clock()
         self.controller = InputController(self)
-        self.screen = pygame.display.set_mode((SCREEN_SIZE, SCREEN_SIZE))
+#         self.screen = pygame.display.set_mode((BASE_SCREEN_RES, BASE_SCREEN_RES))
+        pview.set_mode((BASE_SCREEN_RES, BASE_SCREEN_RES))
+        self.screen = pview.screen
         self.scenes = {SCN_WORLD: WorldScene(self),
                       SCN_ENCOUNTER: EncounterScene(self)
                       }

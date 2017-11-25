@@ -2,21 +2,23 @@ from configparser import ConfigParser
 
 import pygame
 
+from settings import TILE_SIZE_PX
+
 
 DIR_N = 'N'
 DIR_S = 'S'
 DIR_E = 'E'
 DIR_W = 'W'
-
-TILE_W, TILE_H = 16 * 2, 16 * 2  # 16x16 tiles and 2x zoom
-
 dir_vectors = {DIR_N: (0, -1), DIR_S: (0, 1), DIR_E: (1, 0), DIR_W: (-1, 0)}
 
+N_CELLS = 16  # square levels of 16x16 cells
+
+# TODO: rename cells into tiles
 
 def load_tileset():
     tileset_img = pygame.image.load('assets/tileset.png').convert()
-    tileset_img = pygame.transform.scale2x(tileset_img)
-    tile_w, tile_h = TILE_W, TILE_H
+    # tileset_img = pygame.transform.scale2x(tileset_img)
+    tile_w, tile_h = TILE_SIZE_PX, TILE_SIZE_PX
     image_w, image_h = tileset_img.get_size()
     tileset = []
     for tile_x in range(0, image_w // tile_w):
@@ -50,12 +52,12 @@ class Level():
         
     def pre_render_map(self):
         tileset = load_tileset()
-        bg = pygame.Surface((self.w * TILE_W, self.h * TILE_H))
+        bg = pygame.Surface((self.w * TILE_SIZE_PX, self.h * TILE_SIZE_PX))
         for map_y, line in enumerate(self.cells):
             for map_x, cell_type in enumerate(line):
                 tile_x, tile_y = self.cell_types[cell_type]['tileset_pos'].split(',')
                 tile_img = tileset[int(tile_x)][int(tile_y)]
-                bg.blit(tile_img, (map_x * TILE_W, map_y * TILE_H))
+                bg.blit(tile_img, (map_x * TILE_SIZE_PX, map_y * TILE_SIZE_PX))
         return bg
     
     def get_terrain_penalty(self, pos):
