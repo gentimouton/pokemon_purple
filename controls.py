@@ -2,8 +2,13 @@ import pygame
 from pygame.constants import QUIT, KEYDOWN, K_ESCAPE, K_UP, K_DOWN, K_LEFT, \
     K_RIGHT, K_w, K_s, K_a, K_d, K_RETURN, K_KP_ENTER
 
-from constants import BTN_SUBMIT, BTN_DOWN, BTN_UP, BTN_LEFT, BTN_RIGHT
 
+
+BTN_UP = 'up'
+BTN_DOWN = 'down'
+BTN_LEFT = 'left'
+BTN_RIGHT = 'right'
+BTN_SUBMIT = 'submit'
 
 _key_mapping = { # maps pygame keys to abstract buttons
     K_UP: BTN_UP, 

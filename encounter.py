@@ -2,7 +2,7 @@ import pygame
 from pygame.color import Color
 from pygame.constants import RLEACCEL
 
-from constants import BTN_RIGHT, BTN_SUBMIT, BTN_UP, BTN_DOWN, BTN_LEFT
+from controls import BTN_SUBMIT, BTN_UP, BTN_DOWN, BTN_LEFT, BTN_RIGHT
 from scene import Scene, SCN_WORLD
 
 

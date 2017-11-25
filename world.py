@@ -3,9 +3,11 @@ from pygame.color import Color
 from pygame.constants import RLEACCEL
 
 from character import Player, MonsterNPC, WanderingNPC, RockNPC, DIR_N, DIR_S, DIR_E, DIR_W
-from constants import BTN_DOWN, BTN_UP, BTN_LEFT, BTN_RIGHT
+from controls import BTN_UP, BTN_DOWN, BTN_LEFT, BTN_RIGHT
 from level import Level, TILE_W, TILE_H
 from scene import Scene, SCN_ENCOUNTER
+
+
 
 
 class WorldScene(Scene):

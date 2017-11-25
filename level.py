@@ -1,10 +1,12 @@
-
 from configparser import ConfigParser
 
 import pygame
 
-from constants import DIR_N, DIR_S, DIR_E, DIR_W
 
+DIR_N = 'N'
+DIR_S = 'S'
+DIR_E = 'E'
+DIR_W = 'W'
 
 TILE_W, TILE_H = 16 * 2, 16 * 2  # 16x16 tiles and 2x zoom
 
