@@ -1,12 +1,10 @@
 import pygame
-from pygame.color import Color
-from pygame.constants import RLEACCEL
 
 from character import Player, MonsterNPC, WanderingNPC, RockNPC, DIR_N, DIR_S, DIR_E, DIR_W
 from controls import BTN_UP, BTN_DOWN, BTN_LEFT, BTN_RIGHT
 from level import Level
 from scene import Scene, SCN_ENCOUNTER
-from settings import TILE_SIZE_PX
+from utils import load_spritesheet_nested
 
 
 class WorldScene(Scene):
@@ -14,7 +12,7 @@ class WorldScene(Scene):
         Scene.__init__(self, scene_manager)
         self.level = Level()
         self.bg = self.level.pre_render_map()
-        self.allsprites = load_sprites()
+        self.allsprites = load_spritesheet_nested('assets/character_sprites.png')
         self.sprites = pygame.sprite.LayeredDirty()
         self.player = Player(self.level, self.allsprites[0], [self.sprites], (1, 1))
         monster = MonsterNPC(self.level, self.allsprites[4], [self.sprites], (1, 2))
@@ -51,23 +49,3 @@ class WorldScene(Scene):
         changed_rects = self.sprites.draw(self._screen)
         pygame.display.update(changed_rects)
     
-    
-############################################################
-####################   UTILS   #############################
-############################################################
-
-def load_sprites():
-    # front, back, left, run front, run back, run left
-    chars_img = pygame.image.load('assets/character_sprites.png').convert()
-    chars_img.set_colorkey(Color(255, 0, 255), RLEACCEL)
-    # chars_img = pygame.transform.scale2x(chars_img)
-    spr_w, spr_h = TILE_SIZE_PX, TILE_SIZE_PX
-    image_w, image_h = chars_img.get_size()
-    sprites = []
-    for spr_y in range(0, image_h // spr_h):
-        line = []
-        for spr_x in range(0, image_w // spr_w):
-            rect = (spr_x * spr_w, spr_y * spr_h, spr_w, spr_h)
-            line.append(chars_img.subsurface(rect))
-        sprites.append(line)
-    return sprites

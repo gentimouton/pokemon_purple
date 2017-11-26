@@ -4,6 +4,7 @@ from pygame.constants import RLEACCEL
 
 from controls import BTN_SUBMIT, BTN_UP, BTN_DOWN, BTN_LEFT, BTN_RIGHT
 from scene import Scene, SCN_WORLD
+from utils import load_spritesheet_flat
 
 
 GRID_SIZE_PX = 16  # in pixels. 
@@ -15,9 +16,12 @@ class EncounterScene(Scene):
         Scene.__init__(self, scene_manager)
         
         # load sprites
-        self.front_sprites = load_sprites('assets/monsters_front.png', 4, True)
-        self.back_sprites = load_sprites('assets/player_back.png', 4)
-        self.icon_sprites = load_sprites('assets/icons.png', 1)
+        self.front_sprites = load_spritesheet_flat('assets/monsters_front.png', 
+                                          4 * GRID_SIZE_PX, True)
+        self.back_sprites = load_spritesheet_flat('assets/player_back.png', 
+                                         4 * GRID_SIZE_PX)
+        self.icon_sprites = load_spritesheet_flat('assets/icons.png', 
+                                         1 * GRID_SIZE_PX)
         self.sprites = pygame.sprite.LayeredDirty()
         
         # build menu struct
@@ -137,38 +141,7 @@ class EncounterSprite(pygame.sprite.DirtySprite):
         pass
             
             
- 
-############################################################
-####################   UTILS   #############################
-############################################################
-
-# filename -> size of sprites (in pixels) in that file. Sprites must be square.
-spr_size_map = {'assets/monsters_front.png': 56,
-            'assets/player_back.png': 32,
-            'assets/icons.png': 8
-            }
-
-def load_sprites(filename, display_size, flip_h=False):
-    """
-    Return an array of sprites loaded from filename.
-    display_size: number of tiles the sprite takes on the screen (scaling).
-    flip_h=True to flip the sprites horizontally.
-    """
-    chars_img = pygame.image.load(filename).convert()
-    chars_img.set_colorkey(Color(255, 0, 255), RLEACCEL)
-    image_w, image_h = chars_img.get_size()
-    spr_size = spr_size_map[filename]
-    sprites = []
-    for spr_y in range(0, image_h // spr_size):
-        for spr_x in range(0, image_w // spr_size):
-            rect = (spr_x * spr_size, spr_y * spr_size, spr_size, spr_size)
-            img = chars_img.subsurface(rect)
-            img = pygame.transform.flip(img, flip_h, False)
-            size = (display_size * GRID_SIZE_PX, display_size * GRID_SIZE_PX)
-            img = pygame.transform.scale(img, size)
-            sprites.append(img)
-    return sprites
-   
+  
    
 if __name__ == "__main__":
     from pygame.constants import QUIT, KEYDOWN, K_ESCAPE, \

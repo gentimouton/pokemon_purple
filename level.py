@@ -3,6 +3,7 @@ from configparser import ConfigParser
 import pygame
 
 from settings import TILE_SIZE_PX
+from utils import load_spritesheet_flat
 
 
 DIR_N = 'N'
@@ -11,63 +12,49 @@ DIR_E = 'E'
 DIR_W = 'W'
 dir_vectors = {DIR_N: (0, -1), DIR_S: (0, 1), DIR_E: (1, 0), DIR_W: (-1, 0)}
 
-N_CELLS = 16  # square levels of 16x16 cells
+N_TILES = 16  # square levels of 16x16 tiles
 
-# TODO: rename cells into tiles
-
-def load_tileset():
-    tileset_img = pygame.image.load('assets/tileset.png').convert()
-    # tileset_img = pygame.transform.scale2x(tileset_img)
-    tile_w, tile_h = TILE_SIZE_PX, TILE_SIZE_PX
-    image_w, image_h = tileset_img.get_size()
-    tileset = []
-    for tile_x in range(0, image_w // tile_w):
-        line = []
-        for tile_y in range(0, image_h // tile_h):
-            rect = (tile_x * tile_w, tile_y * tile_h, tile_w, tile_h)
-            line.append(tileset_img.subsurface(rect))
-        tileset.append(line)
-    return tileset
 
 
 def load_map(filename):
-    cell_types = {}
+    # TODO: use JSON instead?
+    tile_types = {}
     parser = ConfigParser()
     parser.read(filename)
-    cells = parser.get("level", "cells").split("\n")
+    tiles = parser.get("level", "tiles").split("\n")
     for section in parser.sections():
-        if len(section) == 1:  # single char = cell type
-            cell_types[section] = dict(parser.items(section))
-    return cells, cell_types
+        if len(section) == 1:  # single char = tile type
+            tile_types[section] = dict(parser.items(section))
+    return tiles, tile_types
         
         
 class Level():
     def __init__(self):
-        self.cells, self.cell_types = load_map('assets/level.map')
-        w, h = len(self.cells[0]), len(self.cells)
+        self.tiles, self.tile_types = load_map('assets/level.map')
+        w, h = len(self.tiles[0]), len(self.tiles)
         self.w, self.h = w, h
         self.characters = {}
         self.occupancy = [[None for _ in range(h)] for _ in range(w)]  # map pos to char
 
         
     def pre_render_map(self):
-        tileset = load_tileset()
+        tileset = load_spritesheet_flat('assets/tileset.png')
         bg = pygame.Surface((self.w * TILE_SIZE_PX, self.h * TILE_SIZE_PX))
-        for map_y, line in enumerate(self.cells):
-            for map_x, cell_type in enumerate(line):
-                tile_x, tile_y = self.cell_types[cell_type]['tileset_pos'].split(',')
-                tile_img = tileset[int(tile_x)][int(tile_y)]
+        for map_y, line in enumerate(self.tiles):
+            for map_x, tile_type in enumerate(line):
+                tileset_id = int(self.tile_types[tile_type]['tileset_id'])
+                tile_img = tileset[tileset_id]
                 bg.blit(tile_img, (map_x * TILE_SIZE_PX, map_y * TILE_SIZE_PX))
         return bg
     
     def get_terrain_penalty(self, pos):
         # return 1 if can't walk, 0 if full speed, 0.5 if half speed.
         x, y = pos
-        cell_type = self.cells[y][x]
-        walkable = self.cell_types[cell_type]['walkable'] in ('true', 'True')
+        tile_type = self.tiles[y][x]
+        walkable = self.tile_types[tile_type]['walkable'] in ('true', 'True')
         if not walkable:
             penalty = 1 
-        elif self.cell_types[cell_type]['name'] == 'grass': 
+        elif self.tile_types[tile_type]['name'] == 'grass': 
             penalty = 0.5  # 50% speed on grass
         else:
             penalty = 0

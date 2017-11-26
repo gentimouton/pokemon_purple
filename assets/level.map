@@ -1,6 +1,6 @@
 [level]
 tileset = tileset.png
-cells = ....G..GGGGGGGG.
+tiles = ....G..GGGGGGGG.
         ..GGGGGG..TTGTTG
         G.....G......T..
         GG...TTTTGTG...T
@@ -19,15 +19,15 @@ cells = ....G..GGGGGGGG.
 
 [.]
 name = floor
-tileset_pos = 3, 0
+tileset_id = 3
 walkable = true
 
 [G]
 name = grass
-tileset_pos = 2, 1
+tileset_id = 10
 walkable = true
 
 [T]
 name = tree
-tileset_pos = 6, 1
+tileset_id = 14
 walkable = false
