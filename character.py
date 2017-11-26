@@ -2,8 +2,8 @@ import random
 
 import pygame
 
-from level import dir_vectors, DIR_S, DIR_N, DIR_W, DIR_E
-from settings import TILE_SIZE_PX
+from level import dir_vectors, DIR_S, DIR_N, DIR_W, DIR_E, tile_size
+
 
 
 WACT_OUTCOME_STAY = 'stay'
@@ -40,8 +40,8 @@ class Character(pygame.sprite.DirtySprite):
             DIR_E: [pygame.transform.flip(frames[5], True, False)]
             }
         self.image = self.standing_frames[self.dir][0]
-        self.rect = pygame.Rect(pos[0] * TILE_SIZE_PX, pos[1] * TILE_SIZE_PX, 
-                                TILE_SIZE_PX, TILE_SIZE_PX)
+        self.rect = pygame.Rect(pos[0] * tile_size, pos[1] * tile_size, 
+                                tile_size, tile_size)
         self._animation_index = 0
         self.level = level
         self.level.move_character_to(self, self.pos)
@@ -177,8 +177,8 @@ class Character(pygame.sprite.DirtySprite):
                 
             xx = old_x + dx * progress
             yy = old_y + dy * progress
-            self.rect.x = int(xx * TILE_SIZE_PX)
-            self.rect.y = int(yy * TILE_SIZE_PX)
+            self.rect.x = int(xx * tile_size)
+            self.rect.y = int(yy * tile_size)
         
 
 

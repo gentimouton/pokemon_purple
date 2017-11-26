@@ -1,7 +1,4 @@
 import pygame
-from pygame.constants import QUIT, KEYDOWN, K_ESCAPE, K_UP, K_DOWN, K_LEFT, \
-    K_RIGHT, K_w, K_s, K_a, K_d, K_RETURN, K_KP_ENTER
-
 
 
 BTN_UP = 'up'
@@ -11,16 +8,16 @@ BTN_RIGHT = 'right'
 BTN_SUBMIT = 'submit'
 
 _key_mapping = { # maps pygame keys to abstract buttons
-    K_UP: BTN_UP, 
-    K_w: BTN_UP,
-    K_DOWN: BTN_DOWN, 
-    K_s: BTN_DOWN,
-    K_LEFT: BTN_LEFT, 
-    K_a: BTN_LEFT,
-    K_RIGHT: BTN_RIGHT, 
-    K_d: BTN_RIGHT,
-    K_RETURN: BTN_SUBMIT,
-    K_KP_ENTER: BTN_SUBMIT
+    pygame.K_UP: BTN_UP, 
+    pygame.K_w: BTN_UP,
+    pygame.K_DOWN: BTN_DOWN, 
+    pygame.K_s: BTN_DOWN,
+    pygame.K_LEFT: BTN_LEFT, 
+    pygame.K_a: BTN_LEFT,
+    pygame.K_RIGHT: BTN_RIGHT, 
+    pygame.K_d: BTN_RIGHT,
+    pygame.K_RETURN: BTN_SUBMIT,
+    pygame.K_KP_ENTER: BTN_SUBMIT
     }
 
 class InputController():
@@ -31,11 +28,17 @@ class InputController():
 
     def process_inputs(self):
         for event in pygame.event.get():  # inputs
-            if event.type == QUIT:
+            if event.type == pygame.QUIT:
                 self.game.quit_game()
-            if event.type == KEYDOWN:
+            if event.type == pygame.KEYDOWN:
                 key = event.key
-                if key == K_ESCAPE:
+                if key == pygame.K_ESCAPE:
                     self.game.quit_game()
+                elif key == pygame.K_F11: 
+                    self.game.toggle_fullscreen()
                 elif key in _key_mapping.keys():
-                    self.game.process_input(_key_mapping[key])        
+                    self.game.process_input(_key_mapping[key])
+                # TODO: if prev frame keydowns was [up],
+                # and cur frame keydowns is [up,left]
+                # then send BTN_LEFT, and stop sending BTN_UP
+                # if [up,down], send nothing, etc.

@@ -9,7 +9,8 @@ _spr_size_map = {
     'assets/character_sprites.png': 16
     }
 
-_COLOR_KEY = pygame.Color(255, 0, 255)
+TRANSPARENT = (255, 0, 255)
+
 
 def load_spritesheet_flat(filename, resize_to=None, flip_h=False):
     """
@@ -19,7 +20,7 @@ def load_spritesheet_flat(filename, resize_to=None, flip_h=False):
     :return: Flat list of sprites.
     """
     sheet_img = pygame.image.load(filename).convert()
-    sheet_img.set_colorkey(_COLOR_KEY, pygame.RLEACCEL)
+    sheet_img.set_colorkey(TRANSPARENT, pygame.RLEACCEL)
     sheet_w, sheet_h = sheet_img.get_size()
     spr_size = _spr_size_map[filename]
     sprites = []
@@ -42,7 +43,7 @@ def load_spritesheet_nested(filename, resize_to=None, flip_h=False):
     :return: Nested list of sprites, eg [ [a1,a2], [b1,b2] ].
     """
     sheet_img = pygame.image.load(filename).convert()
-    sheet_img.set_colorkey(_COLOR_KEY, pygame.RLEACCEL)
+    sheet_img.set_colorkey(TRANSPARENT, pygame.RLEACCEL)
     sheet_w, sheet_h = sheet_img.get_size()
     spr_size = _spr_size_map[filename]
     sprites = []

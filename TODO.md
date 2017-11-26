@@ -1,5 +1,19 @@
 
 
+
+# Switching between modes 
+world to encounter: 
+WorldScene memorizes the pkmn with whom the encounter is.
+
+monster name, eg `'charmander'`
+
+tile terrain type (player's + pkmn's), eg `TERRAIN_GRASS`
+ 
+encounter to world: 
+encounter outcome, eg `ENCOUNTER_OUTCOME_FLEE`, `ENCOUNTER_OUTCOME_CAPTURE`
+    
+
+# other TODO
 battle with one option: scare away -> battle ends, pokemon runs away in map
 
 warp npc

@@ -2,7 +2,7 @@ from configparser import ConfigParser
 
 import pygame
 
-from settings import TILE_SIZE_PX
+from settings import BASE_RES
 from utils import load_spritesheet_flat
 
 
@@ -13,7 +13,7 @@ DIR_W = 'W'
 dir_vectors = {DIR_N: (0, -1), DIR_S: (0, 1), DIR_E: (1, 0), DIR_W: (-1, 0)}
 
 N_TILES = 16  # square levels of 16x16 tiles
-
+tile_size = BASE_RES // N_TILES
 
 
 def load_map(filename):
@@ -39,12 +39,12 @@ class Level():
         
     def pre_render_map(self):
         tileset = load_spritesheet_flat('assets/tileset.png')
-        bg = pygame.Surface((self.w * TILE_SIZE_PX, self.h * TILE_SIZE_PX))
+        bg = pygame.Surface((self.w * tile_size, self.h * tile_size))
         for map_y, line in enumerate(self.tiles):
             for map_x, tile_type in enumerate(line):
                 tileset_id = int(self.tile_types[tile_type]['tileset_id'])
                 tile_img = tileset[tileset_id]
-                bg.blit(tile_img, (map_x * TILE_SIZE_PX, map_y * TILE_SIZE_PX))
+                bg.blit(tile_img, (map_x * tile_size, map_y * tile_size))
         return bg
     
     def get_terrain_penalty(self, pos):
