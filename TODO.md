@@ -28,3 +28,12 @@ place grass sprites in top layer?
 second map
 
 battle: pokemon has hp, throw rocks to decrease hp, disappear from map when dead
+
+
+# Gameplay ideas
+- tracking mode: reveals footprints, a la witcher
+
+
+# Components
+- map loader
+- map editor
